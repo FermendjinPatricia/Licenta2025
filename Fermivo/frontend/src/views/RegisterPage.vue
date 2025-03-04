@@ -5,64 +5,61 @@
       alt="Background"
       class="background-image"
     />
-    <div class="box"></div>
-    <form class="register-form" @submit.prevent="handleRegister">
-      <h1>Register</h1>
-      <div class="row">
-        <div>
-          <label for="nume">Nume:</label>
-          <input type="text" id="nume" v-model="nume" required />
+    <div class="register-container">
+      <form class="register-form" @submit.prevent="handleRegister">
+        <h1>Register</h1>
+
+        <div class="row">
+          <div class="input-group">
+            <label for="nume">Nume:</label>
+            <input type="text" id="nume" v-model="nume" required />
+          </div>
+          <div class="input-group">
+            <label for="prenume">Prenume:</label>
+            <input type="text" id="prenume" v-model="prenume" required />
+          </div>
         </div>
-        <div>
-          <label for="prenume">Prenume:</label>
-          <input type="text" id="prenume" v-model="prenume" required />
+
+        <div class="row">
+          <div class="input-group">
+            <label for="denumireaFirmei">Denumirea Firmei:</label>
+            <input type="text" id="denumireaFirmei" v-model="denumireaFirmei" required />
+          </div>
+          <div class="input-group">
+            <label for="codUnicDeIdentificare">Cod unic de identificare:</label>
+            <input type="text" id="codUnicDeIdentificare" v-model="codUnicDeIdentificare" required />
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <div>
-          <label for="denumireaFirmei">Denumirea Firmei:</label>
-          <input
-            type="text"
-            id="denumireaFirmei"
-            v-model="denumireaFirmei"
-            required
-          />
+
+        <div class="row">
+          <div class="input-group">
+            <label for="adresa">Adresa:</label>
+            <input type="text" id="adresa" v-model="adresa" required />
+          </div>
+          <div class="input-group">
+            <label for="telefon">Telefon:</label>
+            <input type="tel" id="telefon" v-model="telefon" required />
+          </div>
         </div>
-        <div>
-          <label for="codUnicDeIdentificare">Cod unic de identificare:</label>
-          <input
-            type="text"
-            id="codUnicDeIdentificare"
-            v-model="codUnicDeIdentificare"
-            required
-          />
+
+        <div class="row">
+          <div class="input-group">
+            <label for="email">E-mail:</label>
+            <input type="email" id="email" v-model="email" required />
+          </div>
+          <div class="input-group">
+            <label for="parola">Parola:</label>
+            <input type="password" id="parola" v-model="parola" required />
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <div>
-          <label for="adresa">Adresa:</label>
-          <input type="text" id="adresa" v-model="adresa" required />
+
+        <button type="submit">Register</button>
+
+        <div class="register-link">
+          <router-link to="/login">Ai deja un cont? Conectează-te acum!</router-link>
         </div>
-        <div>
-          <label for="telefon">Telefon:</label>
-          <input type="tel" id="telefon" v-model="telefon" required />
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label for="email">E-mail:</label>
-          <input type="email" id="email" v-model="email" required />
-        </div>
-        <div>
-          <label for="parola">Parola:</label>
-          <input type="password" id="parola" v-model="parola" required />
-        </div>
-      </div>
-      <button type="submit">Register</button>
-      <div style="margin-top: 1rem; text-align: center">
-        <router-link to="/login">Ai deja un cont? Conectează-te acum!</router-link>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -109,74 +106,150 @@ export default {
 };
 </script>
 
-
 <style scoped>
+/* 🔹 Fundal corect scalat */
 .background-image {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
   z-index: -1;
 }
 
-.box {
-  margin-top: 2rem;
+/* 🔹 Container pentru centrarea formularului */
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
+/* 🔹 Formular */
 .register-form {
-  background: rgba(218, 172, 111, 0.8);
+  background: rgba(218, 172, 111, 0.85);
   padding: 2rem;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   max-width: 600px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-h1 {
+  width: 90%;
   text-align: center;
-  color: rgba(45, 26, 0, 0.944);
-  margin-bottom: 1rem;
 }
 
+/* 🔹 Titlu */
+h1 {
+  color: rgba(45, 26, 0, 0.944);
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+}
+
+/* 🔹 Gruparea inputurilor */
+.input-group {
+  margin-bottom: 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+/* 🔹 Aliniere perfectă a coloanelor */
 .row {
   display: flex;
-  justify-content: space-between;
-  gap: 10rem;
-  margin-bottom: 1rem;
+  justify-content: center;  /* 🔹 Centrăm conținutul */
+  align-items: center;
+  gap: 2rem;  /* 🔹 Spațiu mai mare între coloane */
+  width: 100%;
 }
 
+/* 🔹 Asigură că fiecare div ocupă 50% din rând */
 .row div {
   flex: 1;
 }
 
+/* 🔹 Etichete și inputuri */
 label {
   display: block;
   color: rgba(45, 26, 0, 0.944);
   margin-bottom: 0.5rem;
+  font-size: 1rem;
 }
 
 input {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.7rem;
   border: 1px solid #db8307;
-  color: rgba(45, 26, 0, 0.944);
   border-radius: 5px;
+  font-size: 1rem;
 }
 
+/* 🔹 Buton */
 button {
   width: 100%;
-  padding: 0.7rem;
+  padding: 0.8rem;
   background-color: #935313;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 1rem;
 }
 
 button:hover {
   background-color: #012f19;
+}
+
+/* 🔹 Link pentru login */
+.register-link {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.register-link a {
+  color: #613399;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+/* 🔹 Responsivitate pentru mobile */
+@media (max-width: 768px) {
+  .register-container {
+    align-items: flex-start;
+    padding-top: 8vh;
+  }
+
+  .register-form {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  input {
+    font-size: 1rem;
+    padding: 0.6rem;
+  }
+
+  button {
+    font-size: 1rem;
+    padding: 0.8rem;
+  }
+
+  /* 🔹 Pe mobile inputurile sunt puse unul sub altul */
+  .row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .row div {
+    width: 100%;
+  }
 }
 </style>
