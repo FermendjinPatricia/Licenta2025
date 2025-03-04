@@ -25,6 +25,39 @@
   </div>
 </template>
 
+<script>
+import axios from '../axios'; 
+
+export default {
+  name: 'LoginPage',
+  data() {
+    return {
+      email: '',
+      parola: '',
+      errorMessage: '',
+    };
+  },
+  methods: {
+    async handleLogin() {
+      try {
+        const response = await axios.post('/users/login', {
+          email: this.email,
+          parola: this.parola,
+        });
+
+        if (response.status === 200) {
+          localStorage.setItem('token', response.data.token);
+          this.$router.push('/home');
+        }
+      } catch (error) {
+        this.errorMessage = error.response?.data?.message || 'Eroare la autentificare.';
+        alert(this.errorMessage);
+      }
+    }
+  },
+};
+</script>
+
 <style scoped>
 /* 🔹 Fundal */
 .background-image {
