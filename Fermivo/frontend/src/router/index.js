@@ -3,7 +3,8 @@ import LoginPage from "../views/LoginPage.vue";
 import RegisterPage from "../views/RegisterPage.vue";
 import HomePage from "@/views/HomePage.vue";
 import WelcomePage from "@/views/WelcomePage.vue";
-
+import Hello from "@/views/Hello.vue";
+import About from "@/views/About.vue";
 const routes = [
   {
     path: "/login",
@@ -21,8 +22,18 @@ const routes = [
     component: WelcomePage,
   },
   {
+    path: "/about",
+    name: "About",
+    component : About,  
+  },
+  {
+    path: "/hello",
+    name: "Hello",
+    component: Hello,
+  },
+  {
     path: "/",
-    redirect: "/welcome",
+    redirect: "/hello",
   },  
   {
     path: "/register",

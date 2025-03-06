@@ -107,7 +107,6 @@ export default {
 </script>
 
 <style scoped>
-/* 🔹 Fundal corect scalat */
 .background-image {
   position: fixed;
   top: 0;
@@ -121,7 +120,6 @@ export default {
   z-index: -1;
 }
 
-/* 🔹 Container pentru centrarea formularului */
 .register-container {
   display: flex;
   justify-content: center;
@@ -129,7 +127,6 @@ export default {
   height: 100vh;
 }
 
-/* 🔹 Formular */
 .register-form {
   background: rgba(218, 172, 111, 0.85);
   padding: 2rem;
@@ -140,35 +137,30 @@ export default {
   text-align: center;
 }
 
-/* 🔹 Titlu */
 h1 {
   color: rgba(45, 26, 0, 0.944);
   margin-bottom: 1.5rem;
   font-size: 2rem;
 }
 
-/* 🔹 Gruparea inputurilor */
 .input-group {
   margin-bottom: 1rem;
   text-align: left;
   width: 100%;
 }
 
-/* 🔹 Aliniere perfectă a coloanelor */
 .row {
   display: flex;
-  justify-content: center;  /* 🔹 Centrăm conținutul */
+  justify-content: center;  
   align-items: center;
-  gap: 2rem;  /* 🔹 Spațiu mai mare între coloane */
+  gap: 2rem; 
   width: 100%;
 }
 
-/* 🔹 Asigură că fiecare div ocupă 50% din rând */
 .row div {
   flex: 1;
 }
 
-/* 🔹 Etichete și inputuri */
 label {
   display: block;
   color: rgba(45, 26, 0, 0.944);
@@ -184,7 +176,6 @@ input {
   font-size: 1rem;
 }
 
-/* 🔹 Buton */
 button {
   width: 100%;
   padding: 0.8rem;
@@ -200,7 +191,6 @@ button:hover {
   background-color: #012f19;
 }
 
-/* 🔹 Link pentru login */
 .register-link {
   margin-top: 1rem;
   text-align: center;
@@ -216,7 +206,6 @@ button:hover {
   text-decoration: underline;
 }
 
-/* 🔹 Responsivitate pentru mobile */
 @media (max-width: 768px) {
   .register-container {
     align-items: flex-start;
@@ -242,7 +231,6 @@ button:hover {
     padding: 0.8rem;
   }
 
-  /* 🔹 Pe mobile inputurile sunt puse unul sub altul */
   .row {
     flex-direction: column;
     gap: 0;

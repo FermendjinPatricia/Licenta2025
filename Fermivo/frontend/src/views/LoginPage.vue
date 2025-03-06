@@ -59,7 +59,6 @@ export default {
 </script>
 
 <style scoped>
-/* 🔹 Fundal */
 .background-image {
   position: fixed;
   top: 0;
@@ -69,16 +68,12 @@ export default {
   object-fit: cover;
   z-index: -1;
 }
-
-/* 🔹 Container */
 .container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
-
-/* 🔹 Formular */
 .form {
   background: rgba(208, 233, 150, 0.85);
   padding: 2rem;
@@ -88,15 +83,11 @@ export default {
   width: 90%;
   text-align: center;
 }
-
-/* 🔹 Titlu */
 h1 {
   color: rgba(45, 26, 0, 0.944);
   margin-bottom: 1.5rem;
   font-size: 2rem;
 }
-
-/* 🔹 Inputuri + Buton Aceeași Dimensiune */
 .input-group {
   text-align: left;
   margin-bottom: 1rem;
@@ -117,8 +108,6 @@ input {
   border-radius: 5px;
   font-size: 1rem;
 }
-
-/* 🔹 Buton */
 button {
   width: 100%;
   padding: 0.8rem;
@@ -134,8 +123,6 @@ button {
 button:hover {
   background-color: #012f19;
 }
-
-/* 🔹 Link */
 .link-container {
   margin-top: 1rem;
   text-align: center;
