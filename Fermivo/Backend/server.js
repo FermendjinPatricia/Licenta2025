@@ -107,11 +107,11 @@ const runScraper = async () => {
 // ✅ Rulăm scraping-ul la fiecare 1 minut
 setInterval(runScraper, 60 * 1000);
 
-// ✅ Endpoint API pentru a obține datele la cerere
-//app.get("/scrape", async (req, res) => {
-//    const data = await runScraper();
-//    res.json({ success: true, data });
-//});
+//✅ Endpoint API pentru a obține datele la cerere
+app.get("/scrape", async (req, res) => {
+    const data = await runScraper();
+    res.json({ success: true, data });
+});
 
 // ✅ WebSockets: Notificăm clienții la fiecare actualizare
 io.on("connection", (socket) => {
@@ -439,7 +439,7 @@ setInterval(() => {
     scrapeRapita();
 }, INTERVAL_MINUTE * 60 * 1000);
 
-app.get("/scrape", async (req, res) => {
+app.get("/scrape/brm", async (req, res) => {
     try {
         const grau_panificatie = JSON.parse(fs.readFileSync('grau_panificatie.json'));
         const porumb = JSON.parse(fs.readFileSync('porumb.json'));

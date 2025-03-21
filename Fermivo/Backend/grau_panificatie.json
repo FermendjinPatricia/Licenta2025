@@ -2,23 +2,23 @@
   "grau_panificatie": [
     {
       "zona": "VEST",
-      "pret_lei_tona": 1070,
-      "variatie_procente": 1.71
+      "pret_lei_tona": 1074,
+      "variatie_procente": 0.37
     },
     {
       "zona": "EST",
-      "pret_lei_tona": 1082,
-      "variatie_procente": 1.31
+      "pret_lei_tona": 1133,
+      "variatie_procente": 4.71
     },
     {
       "zona": "SUD",
-      "pret_lei_tona": 1064,
-      "variatie_procente": -2.3
+      "pret_lei_tona": 1034,
+      "variatie_procente": -2.82
     },
     {
       "zona": "FOB CONSTANTA",
-      "pret_lei_tona": 1118,
-      "variatie_procente": -5.33
+      "pret_lei_tona": 1064,
+      "variatie_procente": -4.83
     }
   ]
 }

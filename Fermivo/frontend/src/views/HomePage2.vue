@@ -5,9 +5,7 @@
         <button v-if="isLoggedIn" class="sign-out-button" @click="handleLogout">
           Sign Out
         </button>
-        <router-link v-else to="/login" class="sign-in-button"
-          >Sign In</router-link
-        >
+        <router-link v-else to="/login" class="sign-in-button">Sign In</router-link>
       </div>
   
       <img src="../assets/login.jpg" alt="Background" class="background-image" />
@@ -27,11 +25,9 @@
             <tr v-for="(item, index) in cereals" :key="index">
               <td>{{ item.zona }}</td>
               <td>{{ item.produs }}</td>
-              <td>{{ item.pret_lei_tona || "N/A" }}</td>
-              <td
-                :class="{ positive: item.variatie_procente > 0, negative: item.variatie_procente < 0 }"
-              >
-                {{ item.variatie_procente !== null ? item.variatie_procente : "-" }}
+              <td>{{ item.pret_lei_tona }}</td>
+              <td :class="{ positive: item.variatie_procente > 0, negative: item.variatie_procente < 0 }">
+                {{ item.variatie_procente !== null ? item.variatie_procente + '%' : 'N/A' }}
               </td>
             </tr>
           </tbody>
@@ -49,7 +45,7 @@
   </template>
   
   <script>
-  import axios from "../axios";
+  import axios from "axios";
   
   export default {
     name: "HomePage2",
@@ -57,7 +53,7 @@
       return {
         menuOpen: false,
         isLoggedIn: false,
-        cereals: [], // Datele despre cereale
+        cereals: [], // Datele cerealelor
       };
     },
     created() {
@@ -65,56 +61,56 @@
   
       if (this.isLoggedIn) {
         this.fetchData();
-        setInterval(this.fetchData, 60000); // Actualizare automată la 1 minut
+        setInterval(() => {
+          this.fetchData();
+        }, 5 * 60 * 1000); // Actualizare la fiecare 5 minute
       }
     },
     methods: {
       toggleMenu() {
         this.menuOpen = !this.menuOpen;
       },
-      methods: {
-    async fetchData() {
-      try {
-        const response = await axios.get("http://localhost:5000/scrape");
-        console.log("📊 Date primite în frontend:", response.data); // Debugging
-
-        if (!response.data || !response.data.success) {
-          console.error("⚠️ Backend nu a trimis date valide!");
-          return;
-        }
-
-        // Convertim datele într-un format pentru tabel
-        const parsedData = [];
-        const categories = [
-          { key: "grau_panificatie", name: "Grâu de panificație" },
-          { key: "porumb", name: "Porumb" },
-          { key: "grau_furajer", name: "Grâu furajer" },
-          { key: "orz", name: "Orz" },
-          { key: "orz_furajer", name: "Orz furajer" },
-          { key: "floarea_soarelui", name: "Floarea soarelui" },
-          { key: "rapita", name: "Rapiță" },
-        ];
-
-        categories.forEach(category => {
-          if (response.data[category.key]) {
-            response.data[category.key].forEach(item => {
-              parsedData.push({
-                zona: item.zona,
-                produs: category.name,
-                pret_lei_tona: item.pret_lei_tona !== "-" ? item.pret_lei_tona : "N/A",
-                variatie_procente: item.variatie_procente !== "-" ? item.variatie_procente : null,
-              });
-            });
+      async fetchData() {
+        try {
+          const response = await axios.get("http://localhost:5000/scrape/brm");
+          console.log("📊 Date primite în frontend:", response.data);
+  
+          if (!response.data || !response.data.success) {
+            console.error("⚠️ Backend nu a trimis date valide!");
+            return;
           }
-        });
-
-        console.log("📊 Date formatate pentru tabel:", parsedData);
-        this.cereals = parsedData;
-      } catch (error) {
-        console.error("❌ Eroare la preluarea datelor:", error);
-      }
-    },
-},
+  
+          // Transformăm datele primite pentru a fi afișate corect în tabel
+          const parsedData = [];
+          const categories = [
+            { key: "grau_panificatie", name: "Grâu de panificație" },
+            { key: "porumb", name: "Porumb" },
+            { key: "grau_furajer", name: "Grâu furajer" },
+            { key: "orz", name: "Orz" },
+            { key: "orz_furajer", name: "Orz furajer" },
+            { key: "floarea_soarelui", name: "Floarea soarelui" },
+            { key: "rapita", name: "Rapiță" },
+          ];
+  
+          categories.forEach(category => {
+            if (response.data[category.key]) {
+              response.data[category.key].forEach(item => {
+                parsedData.push({
+                  zona: item.zona,
+                  produs: category.name,
+                  pret_lei_tona: item.pret_lei_tona !== "-" ? item.pret_lei_tona : "N/A",
+                  variatie_procente: item.variatie_procente !== "-" ? item.variatie_procente : null,
+                });
+              });
+            }
+          });
+  
+          console.log("📊 Date formatate pentru tabel:", parsedData);
+          this.cereals = parsedData;
+        } catch (error) {
+          console.error("❌ Eroare la preluarea datelor:", error);
+        }
+      },
       handleLogout() {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -127,8 +123,7 @@
   
   <style scoped>
   /* Stiluri generale */
-  html,
-  body {
+  html, body {
     overflow: hidden;
     height: 100%;
     margin: 0;
@@ -196,8 +191,7 @@
     border-collapse: collapse;
     margin-top: 1rem;
   }
-  th,
-  td {
+  th, td {
     padding: 10px;
     border: 1px solid #ddd;
   }
