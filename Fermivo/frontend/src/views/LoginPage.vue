@@ -73,6 +73,7 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  font-family: 'Inria Sans', sans-serif;
 }
 .form {
   background: rgba(208, 233, 150, 0.85);

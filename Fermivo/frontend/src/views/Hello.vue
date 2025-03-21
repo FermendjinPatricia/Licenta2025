@@ -54,6 +54,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    font-family: 'Inria Sans', sans-serif;
   }
   
   .background-image {
@@ -78,15 +79,15 @@
   
   .content-box {
     background: rgba(217, 227, 194, 0.8);
-    padding: 0rem;
+    padding: 1rem;
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.9);
     max-width: 800px;
     width: 95%;
     text-align: left;
     position: absolute;
     top: 150%;
-    left: 0%;
+    margin: auto;
   }
   
   h1 {

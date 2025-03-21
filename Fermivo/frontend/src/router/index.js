@@ -3,6 +3,7 @@ import LoginPage from "../views/LoginPage.vue";
 import RegisterPage from "../views/RegisterPage.vue";
 import HomePage from "@/views/HomePage.vue";
 import WelcomePage from "@/views/WelcomePage.vue";
+import HomePage2 from "@/views/HomePage2.vue";
 import Hello from "@/views/Hello.vue";
 import About from "@/views/About.vue";
 const routes = [
@@ -14,7 +15,7 @@ const routes = [
   {
     path: "/home",
     name: "Home",
-    component: HomePage,
+    component: HomePage2,
   },
   {
     path: "/welcome",
