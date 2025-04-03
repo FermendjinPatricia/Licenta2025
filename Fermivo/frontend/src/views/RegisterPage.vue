@@ -125,6 +125,7 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  font-family: 'Inria Sans', sans-serif;
 }
 
 .register-form {

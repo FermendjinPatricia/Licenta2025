@@ -34,94 +34,94 @@ app.get("/", (req, res) => {
   res.send("Backend funcționează corect!");
 });
 
-// ✅ Funcția de scraping
-const puppeteer = require("puppeteer");
-const runScraper = async () => {
-    try {
-        const browser = await puppeteer.launch({ headless: "new" });
-        const page = await browser.newPage();
+// // ✅ Funcția de scraping
+// const puppeteer = require("puppeteer");
+// const runScraper = async () => {
+//     try {
+//         const browser = await puppeteer.launch({ headless: "new" });
+//         const page = await browser.newPage();
 
-        await page.setUserAgent(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
-        );
+//         await page.setUserAgent(
+//             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+//         );
 
-        const url = "https://live.euronext.com/en/products/commodities";
-        await page.goto(url, { waitUntil: "networkidle2" });
+//         const url = "https://live.euronext.com/en/products/commodities";
+//         await page.goto(url, { waitUntil: "networkidle2" });
 
-        await page.waitForSelector("#cm-futures .table.table-hover");
+//         await page.waitForSelector("#cm-futures .table.table-hover");
 
-        const prices = await page.evaluate(() => {
-            const rows = document.querySelectorAll("#cm-futures .table.table-hover tbody tr");
-            return Array.from(rows).map(row => {
-                const columns = row.querySelectorAll("td");
-                return {
-                    name: columns[0]?.innerText.trim(),
-                    code: columns[1]?.innerText.trim(),
-                    delivery: columns[2]?.innerText.trim(),
-                    last_price: columns[3]?.innerText.trim(),
-                    change: columns[4]?.innerText.trim(),
-                    volume: columns[5]?.innerText.trim(),
-                    open: columns[6]?.innerText.trim(),
-                    high: columns[7]?.innerText.trim(),
-                    low: columns[8]?.innerText.trim(),
-                    settlement: columns[9]?.innerText.trim(),
-                    oi: columns[10]?.innerText.trim(),
-                    total_vol: columns[11]?.innerText.trim(),
-                    total_oi: columns[12]?.innerText.trim(),
-                };
-            });
-        });
+//         const prices = await page.evaluate(() => {
+//             const rows = document.querySelectorAll("#cm-futures .table.table-hover tbody tr");
+//             return Array.from(rows).map(row => {
+//                 const columns = row.querySelectorAll("td");
+//                 return {
+//                     name: columns[0]?.innerText.trim(),
+//                     code: columns[1]?.innerText.trim(),
+//                     delivery: columns[2]?.innerText.trim(),
+//                     last_price: columns[3]?.innerText.trim(),
+//                     change: columns[4]?.innerText.trim(),
+//                     volume: columns[5]?.innerText.trim(),
+//                     open: columns[6]?.innerText.trim(),
+//                     high: columns[7]?.innerText.trim(),
+//                     low: columns[8]?.innerText.trim(),
+//                     settlement: columns[9]?.innerText.trim(),
+//                     oi: columns[10]?.innerText.trim(),
+//                     total_vol: columns[11]?.innerText.trim(),
+//                     total_oi: columns[12]?.innerText.trim(),
+//                 };
+//             });
+//         });
 
-        // ✅ Mapare nume produse în română
-        const productTranslations = {
-            "Corn / Mais": "Porumb",
-            "Milling Wheat / Ble de Meunerie": "Grâu de panificație",
-            "Rapeseed / Colza": "Rapiță",
-            "European Durum Wheat Futures": "Grâu dur european",
-            "GRAND TOTAL": "TOTAL GENERAL",
-        };
+//         // ✅ Mapare nume produse în română
+//         const productTranslations = {
+//             "Corn / Mais": "Porumb",
+//             "Milling Wheat / Ble de Meunerie": "Grâu de panificație",
+//             "Rapeseed / Colza": "Rapiță",
+//             "European Durum Wheat Futures": "Grâu dur european",
+//             "GRAND TOTAL": "TOTAL GENERAL",
+//         };
 
-        // ✅ Eliminăm somonul și aplicăm traducerea
-        const filteredPrices = prices.filter(product => {
-            const productName = product.name?.trim().toLowerCase(); // Curățăm și uniformizăm numele
-            const code = product.code?.trim().toLowerCase(); // Curățăm și uniformizăm codul
-            return productName !== "european salmon futures" && code !== "grand total"; // Excludem somonul
-        })
-        .map(product => ({
-                ...product,
-                name: productTranslations[product.name] || product.name, // Traducem numele produselor
-            }));
+//         // ✅ Eliminăm somonul și aplicăm traducerea
+//         const filteredPrices = prices.filter(product => {
+//             const productName = product.name?.trim().toLowerCase(); // Curățăm și uniformizăm numele
+//             const code = product.code?.trim().toLowerCase(); // Curățăm și uniformizăm codul
+//             return productName !== "european salmon futures" && code !== "grand total"; // Excludem somonul
+//         })
+//         .map(product => ({
+//                 ...product,
+//                 name: productTranslations[product.name] || product.name, // Traducem numele produselor
+//             }));
 
-        await browser.close();
+//         await browser.close();
 
-        // ✅ Trimitem datele noi către clienții WebSocket
-        io.emit("updateData", filteredPrices);
+//         // ✅ Trimitem datele noi către clienții WebSocket
+//         io.emit("updateData", filteredPrices);
 
-        return filteredPrices; // Returnăm datele modificate
-    } catch (error) {
-        console.error("❌ Eroare la scraping:", error);
-    }
-};
+//         return filteredPrices; // Returnăm datele modificate
+//     } catch (error) {
+//         console.error("❌ Eroare la scraping:", error);
+//     }
+// };
 
 
-// ✅ Rulăm scraping-ul la fiecare 1 minut
-setInterval(runScraper, 60 * 1000);
+// // ✅ Rulăm scraping-ul la fiecare 1 minut
+// setInterval(runScraper, 60 * 1000);
 
-//✅ Endpoint API pentru a obține datele la cerere
-app.get("/scrape", async (req, res) => {
-    const data = await runScraper();
-    res.json({ success: true, data });
-});
+// //✅ Endpoint API pentru a obține datele la cerere
+// app.get("/scrape", async (req, res) => {
+//     const data = await runScraper();
+//     res.json({ success: true, data });
+// });
 
-// ✅ WebSockets: Notificăm clienții la fiecare actualizare
-io.on("connection", (socket) => {
-    console.log("🟢 Client conectat la WebSocket");
-    socket.emit("updateData", "Bine ai venit! Așteaptă actualizările...");
+// // ✅ WebSockets: Notificăm clienții la fiecare actualizare
+// io.on("connection", (socket) => {
+//     console.log("🟢 Client conectat la WebSocket");
+//     socket.emit("updateData", "Bine ai venit! Așteaptă actualizările...");
 
-    socket.on("disconnect", () => {
-        console.log("🔴 Client deconectat");
-    });
-});
+//     socket.on("disconnect", () => {
+//         console.log("🔴 Client deconectat");
+//     });
+// });
 
 
 
@@ -133,7 +133,7 @@ io.on("connection", (socket) => {
 // ✅ Pornim serverul
 server.listen(PORT, () => {
     console.log(`🚀 Serverul rulează pe http://localhost:${PORT}`);
-    runScraper(); // Rulăm scraping-ul imediat la pornirea serverului
+    // runScraper(); // Rulăm scraping-ul imediat la pornirea serverului
 });
 
 
@@ -169,8 +169,8 @@ async function scrapeGrauPanificatie() {
         });
 
         fs.writeFileSync('grau_panificatie.json', JSON.stringify({ grau_panificatie: results }, null, 2));
-        console.log('📂 Datele au fost salvate în grau_panificatie.json');
-        console.log('✅ Rezultate:', results);
+        //console.log('📂 Datele au fost salvate în grau_panificatie.json');
+        //console.log('✅ Rezultate:', results);
     } catch (error) {
         console.error('❌ Eroare la scraping:', error);
     }
@@ -207,8 +207,8 @@ async function scrapePorumb() {
         });
 
         fs.writeFileSync('porumb.json', JSON.stringify({ porumb: results }, null, 2));
-        console.log('📂 Datele au fost salvate în porumb.json');
-        console.log('✅ Rezultate:', results);
+        //console.log('📂 Datele au fost salvate în porumb.json');
+        //console.log('✅ Rezultate:', results);
     } catch (error) {
         console.error('❌ Eroare la scraping PORUMB:', error);
     }
@@ -246,8 +246,8 @@ async function scrapeGrauFurajer() {
         });
 
         fs.writeFileSync('grau_furajer.json', JSON.stringify({ grau_furajer: results }, null, 2));
-        console.log('📂 Datele au fost salvate în grau_furajer.json');
-        console.log('✅ Rezultate:', results);
+        //console.log('📂 Datele au fost salvate în grau_furajer.json');
+        //console.log('✅ Rezultate:', results);
     } catch (error) {
         console.error('❌ Eroare la scraping GRÂU FURAJER:', error);
     }
@@ -285,8 +285,8 @@ async function scrapeOrz() {
         });
 
         fs.writeFileSync('orz.json', JSON.stringify({ orz: results }, null, 2));
-        console.log('📂 Datele au fost salvate în orz.json');
-        console.log('✅ Rezultate:', results);
+        //console.log('📂 Datele au fost salvate în orz.json');
+        //console.log('✅ Rezultate:', results);
     } catch (error) {
         console.error('❌ Eroare la scraping ORZ:', error);
     }
@@ -331,8 +331,8 @@ async function scrapeOrzFurajer() {
         });
 
         fs.writeFileSync('orz_furajer.json', JSON.stringify({ orz: results }, null, 2));
-        console.log('📂 Datele au fost salvate în orz_furajer.json');
-        console.log('✅ Rezultate:', results);
+        //console.log('📂 Datele au fost salvate în orz_furajer.json');
+        //console.log('✅ Rezultate:', results);
     } catch (error) {
         console.error('❌ Eroare la scraping ORZ:', error);
     }
@@ -374,8 +374,8 @@ async function scrapeFloareaSoarelui() {
         });
 
         fs.writeFileSync('floarea_soarelui.json', JSON.stringify({ orz: results }, null, 2));
-        console.log('📂 Datele au fost salvate în floarea_soarelui.json');
-        console.log('✅ Rezultate:', results);
+        //console.log('📂 Datele au fost salvate în floarea_soarelui.json');
+        //console.log('✅ Rezultate:', results);
     } catch (error) {
         console.error('❌ Eroare la scraping ORZ:', error);
     }
@@ -417,8 +417,8 @@ async function scrapeRapita() {
         });
 
         fs.writeFileSync('rapita.json', JSON.stringify({ orz: results }, null, 2));
-        console.log('📂 Datele au fost salvate în rapita.json');
-        console.log('✅ Rezultate:', results);
+        //console.log('📂 Datele au fost salvate în rapita.json');
+        //console.log('✅ Rezultate:', results);
     } catch (error) {
         console.error('❌ Eroare la scraping ORZ:', error);
     }
@@ -463,4 +463,25 @@ app.get("/scrape/brm", async (req, res) => {
         console.error("❌ Eroare la citirea fișierelor JSON:", error);
         res.status(500).json({ success: false, message: "Eroare la preluarea datelor" });
     }
+});
+
+
+
+const cron = require("node-cron");
+const { exec } = require("child_process");
+
+// Rulează scrape.js o dată pe zi la ora 6 dimineața
+cron.schedule("0 6 * * *", () => {
+  console.log("🔄 Rulez scraperul zilnic...");
+  exec("node scrape.js", (error, stdout, stderr) => {
+    if (error) {
+      console.error(`❌ Eroare la rularea scrape.js: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.error(`⚠️ STDERR: ${stderr}`);
+      return;
+    }
+    console.log(`✅ STDOUT:\n${stdout}`);
+  });
 });

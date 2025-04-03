@@ -2,18 +2,18 @@
   "grau_furajer": [
     {
       "zona": "VEST",
-      "pret_lei_tona": 1055,
-      "variatie_procente": 1.25
+      "pret_lei_tona": 1044,
+      "variatie_procente": -1.04
     },
     {
       "zona": "EST",
-      "pret_lei_tona": 1072,
-      "variatie_procente": -2.46
+      "pret_lei_tona": 1010,
+      "variatie_procente": -5.78
     },
     {
       "zona": "SUD",
-      "pret_lei_tona": 1014,
-      "variatie_procente": 1.2
+      "pret_lei_tona": 1033,
+      "variatie_procente": 1.87
     },
     {
       "zona": "FOB CONSTANTA",
