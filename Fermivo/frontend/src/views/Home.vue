@@ -1,33 +1,83 @@
 <template>
   <div class="welcome-page">
+    <!-- HEADER -->
     <div class="header">
       <button class="menu-button" @click="toggleMenu">&#9776;</button>
-      <button v-if="isLoggedIn" class="sign-out-button" @click="handleLogout">
-        Deconectează-te
-      </button>
-      <router-link v-else to="/login" class="sign-in-button"
-        >Conectează-te</router-link
-      >
-    </div>
 
-    <img src="../assets/login.jpg" alt="Background" class="background-image" />
+      <router-link to="/" class="site-title">Fermivo🌾</router-link>
 
-    <div class="card-container">
-      <h2>Anunțurile tale</h2>
-      <div v-for="(item, index) in cereals" :key="index" class="card">
-        <div class="card-text">
-          <p>
-            <strong>{{ item.produs }}</strong>
-          </p>
-          <p>Preț: {{ item.pret_lei_tona }} lei/tonă</p>
-          <p>Oraș: {{ item.zona }}</p>
+      <div class="header-right">
+        <div v-if="isLoggedIn" class="user-profile" @click="toggleProfileMenu">
+          <img :src="userProfilePicture" class="profile-picture" />
+          <span class="user-name">{{ userName }}</span>
+
+          <div v-if="showProfileMenu" class="profile-menu">
+            <router-link :to="`/editare-profil/${user?._id}`">Editează Profil</router-link>
+          </div>
         </div>
-        <img src="../assets/grau.jpg" alt="Imagine produs" class="card-image" />
+
+        <button v-if="isLoggedIn" class="sign-out-button" @click="handleLogout">
+          Sign Out
+        </button>
       </div>
     </div>
 
+    <!-- FUNDAL -->
+    <img src="../assets/login.jpg" alt="Background" class="background-image" />
+
+    <!-- INTRO -->
+    <div class="content-box">
+      <h1>Bine ai venit! 👋</h1>
+      <p>
+        Noi suntem <strong>Fermivo</strong>, partenerul tău de încredere în agricultura digitală. <br />
+        Punem în legătură fermierii și companiile, ajutându-te să cumperi, să vinzi și să te dezvolți cu încredere. <br />
+        Bine ai venit în viitorul agriculturii inteligente! 🚜🌾
+      </p>
+    </div>
+
+    <!-- PREDICTII SLIDER -->
+    <div v-if="predictii.length" 
+         class="predictii-slider"
+         @touchstart="handleTouchStart"
+         @touchend="handleTouchEnd">
+      <div class="slide">
+        <h3>{{ predictii[currentSlide].produs }}</h3>
+        <p><strong>Zonă:</strong> {{ predictii[currentSlide].zona }}</p>
+        <p><strong>Preț estimat:</strong> {{ predictii[currentSlide].pret_lei_predictie }} </p>
+      </div>
+      <div class="slide-controls">
+        <button @click="prevSlide">⬅️</button>
+        <button @click="nextSlide">➡️</button>
+      </div>
+    </div>
+
+    <!-- ANUNTURI -->
+    <div class="card-container">
+      <p v-if="cereals.length === 0" class="no-ads">
+        Nu ai adăugat încă niciun anunț. Începe chiar acum! 🚜
+      </p>
+
+      <div v-else v-for="(item, index) in cereals" :key="index" class="card">
+        <div class="card-text">
+          <p><strong>{{ item.produs }}</strong></p>
+          <p>Preț: {{ item.pret_lei_tona }} lei/tonă</p>
+          <p>Oraș: {{ item.zona }}</p>
+
+          <router-link :to="`/anunturi/${item._id}`" class="detalii-button">
+            Vezi detalii
+          </router-link>
+        </div>
+        <img src="../assets/grau.jpg" alt="Imagine produs" class="card-image" />
+      </div>
+
+      <router-link to="/adauga-anunt" class="adauga_anunt">Adaugă un anunț</router-link>
+    </div>
+
+    <!-- MENIU -->
     <nav v-if="menuOpen" class="menu">
       <ul>
+        <li><router-link to="/login">Login</router-link></li>
+        <li><router-link to="/register">Register</router-link></li>
         <li><router-link to="/check-prices">Check prices on the market</router-link></li>
         <li><router-link to="/about">About</router-link></li>
       </ul>
@@ -39,101 +89,232 @@
 import axios from "axios";
 
 export default {
-  name: "HomePage2",
+  name: "HomeWithAds",
   data() {
     return {
       menuOpen: false,
+      cereals: [],
       isLoggedIn: false,
-      cereals: [], // Datele cerealelor
+      showProfileMenu: false,
+      user: null,
+      predictii: [],
+      currentSlide: 0,
+      touchStartX: 0,
+      touchEndX: 0,
+      autoplayInterval: null,
     };
   },
+  computed: {
+    userName() {
+      return this.user ? `${this.user.nume} ${this.user.prenume}` : "Utilizator";
+    },
+    userProfilePicture() {
+      return this.user?.profilePicture
+        ? `http://localhost:5000${this.user.profilePicture}`
+        : `http://localhost:5000/uploads/default_profile.jpg`;
+    },
+  },
   created() {
-    this.isLoggedIn = !!localStorage.getItem("token");
-
-    if (this.isLoggedIn) {
-      this.fetchData();
-      setInterval(() => {
-        this.fetchData();
-      }, 5 * 60 * 1000); // Actualizare la fiecare 5 minute
+    const token = localStorage.getItem("token");
+    if (!token) {
+      this.$router.push("/login");
+    } else {
+      this.isLoggedIn = true;
+      this.fetchUser();
+      this.fetchAnunturi();
+      this.fetchPredictii();
     }
+  },
+  mounted() {
+    this.startAutoplay();
+  },
+  beforeDestroy() {
+    clearInterval(this.autoplayInterval);
   },
   methods: {
     toggleMenu() {
       this.menuOpen = !this.menuOpen;
     },
-    async fetchData() {
-      try {
-        const response = await axios.get("http://localhost:5000/scrape/brm");
-        console.log("📊 Date primite în frontend:", response.data);
-
-        if (!response.data || !response.data.success) {
-          console.error("⚠️ Backend nu a trimis date valide!");
-          return;
-        }
-
-        // Transformăm datele primite pentru a fi afișate corect în tabel
-        const parsedData = [];
-        const categories = [
-          { key: "grau_panificatie", name: "Grâu de panificație" },
-          { key: "porumb", name: "Porumb" },
-          { key: "grau_furajer", name: "Grâu furajer" },
-          { key: "orz", name: "Orz" },
-          { key: "orz_furajer", name: "Orz furajer" },
-          { key: "floarea_soarelui", name: "Floarea soarelui" },
-          { key: "rapita", name: "Rapiță" },
-        ];
-
-        categories.forEach((category) => {
-          if (response.data[category.key]) {
-            response.data[category.key].forEach((item) => {
-              parsedData.push({
-                zona: item.zona,
-                produs: category.name,
-                pret_lei_tona:
-                  item.pret_lei_tona !== "-" ? item.pret_lei_tona : "N/A",
-                variatie_procente:
-                  item.variatie_procente !== "-"
-                    ? item.variatie_procente
-                    : null,
-              });
-            });
-          }
-        });
-
-        console.log("📊 Date formatate pentru tabel:", parsedData);
-        this.cereals = parsedData;
-      } catch (error) {
-        console.error("❌ Eroare la preluarea datelor:", error);
-      }
+    toggleProfileMenu() {
+      this.showProfileMenu = !this.showProfileMenu;
     },
     handleLogout() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       this.isLoggedIn = false;
+      this.cereals = [];
       this.$router.push("/login");
     },
-  },
+    async fetchUser() {
+      try {
+        const userId = JSON.parse(localStorage.getItem("user"))?._id;
+        if (!userId) return;
+
+        const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
+        if (response.data.success) {
+          this.user = response.data.user;
+        }
+      } catch (error) {
+        console.error("❌ Eroare la fetch user:", error);
+      }
+    },
+    async fetchAnunturi() {
+      try {
+        const userId = JSON.parse(localStorage.getItem("user"))?._id;
+        if (!userId) return;
+
+        const response = await axios.get(`http://localhost:5000/api/anunturi/user/${userId}`);
+        if (response.data.success) {
+          this.cereals = response.data.anunturi;
+        } else {
+          this.cereals = [];
+        }
+      } catch (error) {
+        console.error("Eroare la fetch anunțuri:", error);
+        this.cereals = [];
+      }
+    },
+    async fetchPredictii() {
+      try {
+        const response = await axios.get("http://localhost:5000/api/predictii");
+        if (response.data.success) {
+          this.predictii = response.data.predictii;
+        }
+      } catch (error) {
+        console.error("❌ Eroare la fetch predictii:", error);
+      }
+    },
+    nextSlide() {
+      this.currentSlide = (this.currentSlide + 1) % this.predictii.length;
+    },
+    prevSlide() {
+      this.currentSlide = (this.currentSlide - 1 + this.predictii.length) % this.predictii.length;
+    },
+    handleTouchStart(e) {
+      this.touchStartX = e.changedTouches[0].screenX;
+    },
+    handleTouchEnd(e) {
+      this.touchEndX = e.changedTouches[0].screenX;
+      this.handleSwipe();
+    },
+    handleSwipe() {
+      const delta = this.touchEndX - this.touchStartX;
+      if (Math.abs(delta) > 50) {
+        if (delta < 0) {
+          this.nextSlide();
+        } else {
+          this.prevSlide();
+        }
+      }
+    },
+    startAutoplay() {
+      this.autoplayInterval = setInterval(() => {
+        if (this.predictii.length) {
+          this.nextSlide();
+        }
+      }, 5000); // la 5 secunde
+    }
+  }
 };
 </script>
 
+
 <style scoped>
-/* Stiluri generale */
-html,
-body {
-  overflow: hidden;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-.welcome-page {
-  position: relative;
-  width: 100%;
-  height: 100%;
+.header {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: space-between;
+  width: 97%;
+  background: rgba(253, 253, 253, 0.9);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  position: relative;
+}
+
+.site-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1b5e20;
+  text-decoration: none;
   font-family: "Inria Sans", sans-serif;
 }
+
+.header-right {
+  display: flex;
+  align-items: right;
+  gap: 0.2rem;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #1b5e20;
+}
+
+.user-name {
+  font-weight: bold;
+  color: #1b5e20;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+}
+
+.profile-menu a {
+  color: #1b5e20;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.profile-menu a:hover {
+  text-decoration: underline;
+}
+
+.menu-button {
+  font-size: 2rem;
+  background: rgba(217, 242, 208, 1);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #1b5e20;
+}
+
+.sign-in-button,
+.sign-out-button {
+  background-color: #1b5e20;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 7px;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+}
+
+.sign-in-button:hover,
+.sign-out-button:hover {
+  background-color: #093b12;
+}
+
 .background-image {
   position: fixed;
   top: 0;
@@ -142,23 +323,38 @@ body {
   height: 100%;
   z-index: -1;
 }
-.header {
-  display: flex;
-  justify-content: space-between;
-  top: 0;
-  width: 100%;
-  background: rgba(253, 253, 253, 0.9);
-  padding: 0rem;
-  border-radius: 8px;
-  z-index: 0;
+
+.content-box {
+  background: rgba(217, 227, 194, 0.8);
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.9);
+  max-width: 800px;
+  width: 95%;
+  text-align: left;
+  margin-top: 2rem;
 }
+
+h1 {
+  font-size: 3rem;
+  font-weight: bold;
+  color: rgba(0, 114, 31, 1);
+}
+
+p {
+  font-size: 1.7rem;
+  font-weight: bold;
+  color: rgba(0, 114, 31, 1);
+}
+
 .card-container {
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(8px);
-  border: 2px solid #dff1cf45;
+  border: 2px solid #02111d45;
   padding: 1rem;
   border-radius: 20px;
-  margin-top: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -173,7 +369,7 @@ body {
   background: rgba(197, 241, 186, 0.8);
   border-radius: 20px;
   padding: 1rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .card-text {
@@ -191,74 +387,82 @@ body {
   margin-left: 1rem;
 }
 
-
-/* Butoane */
-.sign-in-button,
-.sign-out-button {
-  background-color: #1b5e20;
-  color: rgb(249, 250, 248);
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  margin: 0.35rem 1rem;
-  border-radius: 7px;
-  font-size: 1rem;
-  border: none;
-  cursor: pointer;
-}
-.sign-in-button:hover,
-.sign-out-button:hover {
-  background-color: #093b12;
-}
-
-/* Tabel cu date */
-.data-container {
-  background: rgba(255, 255, 255, 0.8);
-  padding: 1rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 90%;
-  width: 800px;
+.no-ads {
   text-align: center;
-  margin-top: 2rem;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-th,
-td {
-  padding: 10px;
-  border: 1px solid #ddd;
-}
-th {
-  background-color: #012f19;
-  color: white;
-}
-.positive {
-  color: green;
+  color: #ffffff;
+  font-size: 1.2rem;
   font-weight: bold;
 }
-.negative {
-  color: red;
-  font-weight: bold;
-}
-.menu-button {
-  font-size: 2rem;
-  background: rgba(217, 242, 208, 1);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  color: #1b5e20;
-}
+
 .menu {
   position: absolute;
   top: 60px;
   left: 15px;
-  background: white;
+  background: rgb(201, 223, 192);
   padding: 1rem;
   border-radius: 5px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 2;
 }
+
+.detalii-button, .adauga_anunt {
+  display: inline-block;
+  background-color: #1b5e20;
+  color: white;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.detalii-button, .adauga_anunt:hover {
+  background-color: #093b12;
+  transform: translateY(-2px);
+}
+
+.detalii-button, .adauga_anunt:active {
+  transform: translateY(0);
+}
+
+.predictii-slider {
+  position: absolute;
+  right: 2rem;
+  top: 10rem;
+  width: 300px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 5;
+}
+
+.slide {
+  text-align: center;
+  font-weight: bold;
+  color: #1b5e20;
+}
+
+.slide-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.slide-controls button {
+  background: #1b5e20;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.slide-controls button:hover {
+  background: #093b12;
+}
+
 </style>

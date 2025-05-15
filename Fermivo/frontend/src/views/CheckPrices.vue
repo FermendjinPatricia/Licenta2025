@@ -49,21 +49,35 @@
     <div class="data-container" v-else>
       <h2>Prețuri cereale</h2>
       <p>
-        Această funcționalitate nu este disponibilă decât dacă sunteți autentificat. Vă rugăm să vă conectați
-       sau să creați un cont.
+        Această funcționalitate nu este disponibilă decât dacă sunteți
+        autentificat. Vă rugăm să vă conectați sau să creați un cont.
       </p>
     </div>
 
     <nav v-if="menuOpen" class="menu">
       <ul v-if="isLoggedIn">
-        <li><router-link to="/home">Home</router-link></li>
-        <li><router-link to="/check-prices">Check prices on the market</router-link></li>
+        <li v-if="isBuyer">
+          <router-link to="/home-buyer">Home</router-link>
+        </li>
+        <li v-else>
+          <router-link to="/home">Home</router-link>
+        </li>
+
+        <li>
+          <router-link to="/check-prices"
+            >Check prices on the market</router-link
+          >
+        </li>
         <li><router-link to="/about">About</router-link></li>
       </ul>
       <ul v-else>
         <li><router-link to="/login">Login</router-link></li>
         <li><router-link to="/register">Register</router-link></li>
-        <li><router-link to="/check-prices">Check prices on the market</router-link></li>
+        <li>
+          <router-link to="/check-prices"
+            >Check prices on the market</router-link
+          >
+        </li>
         <li><router-link to="/about">About</router-link></li>
       </ul>
     </nav>
@@ -80,7 +94,13 @@ export default {
       menuOpen: false,
       isLoggedIn: false,
       cereals: [], // Datele cerealelor
+      user: JSON.parse(localStorage.getItem("user")),
     };
+  },
+  computed: {
+    isBuyer() {
+      return this.user?.role === "buyer";
+    },
   },
   created() {
     this.isLoggedIn = !!localStorage.getItem("token");
@@ -195,7 +215,7 @@ body {
   font-weight: bold;
   color: #1b5e20;
   text-decoration: none;
-  font-family: 'Inria Sans', sans-serif;
+  font-family: "Inria Sans", sans-serif;
   cursor: pointer;
 }
 /* Butoane */

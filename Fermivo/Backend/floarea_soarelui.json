@@ -2,18 +2,18 @@
   "orz": [
     {
       "zona": "VEST",
-      "pret_lei_tona": 2611,
-      "variatie_procente": -1.29
+      "pret_lei_tona": 2639,
+      "variatie_procente": 5.77
     },
     {
       "zona": "EST",
-      "pret_lei_tona": 2750,
-      "variatie_procente": -2.72
+      "pret_lei_tona": 2479,
+      "variatie_procente": 0.65
     },
     {
       "zona": "SUD",
-      "pret_lei_tona": 2329,
-      "variatie_procente": -3.76
+      "pret_lei_tona": 2401,
+      "variatie_procente": 0.97
     },
     {
       "zona": "FOB CONSTANTA",

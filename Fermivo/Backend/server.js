@@ -4,9 +4,12 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io"); // Importăm WebSockets
 require("dotenv").config();
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ Creăm un server HTTP pentru WebSockets
 const server = http.createServer(app);
@@ -28,6 +31,9 @@ mongoose
 // ✅ Importăm și folosim rutele pentru utilizatori
 const userRoutes = require("./routes/Users");
 app.use("/api/users", userRoutes);
+
+const anunturiRoutes = require("./routes/Anunturi");
+app.use("/api/anunturi", anunturiRoutes);
 
 // ✅ Endpoint de test pentru backend
 app.get("/", (req, res) => {
@@ -330,7 +336,7 @@ async function scrapeOrzFurajer() {
         }
         });
 
-        fs.writeFileSync('orz_furajer.json', JSON.stringify({ orz: results }, null, 2));
+        fs.writeFileSync('orz_furajer.json', JSON.stringify({ orz_furajer: results }, null, 2));
         //console.log('📂 Datele au fost salvate în orz_furajer.json');
         //console.log('✅ Rezultate:', results);
     } catch (error) {
@@ -470,18 +476,44 @@ app.get("/scrape/brm", async (req, res) => {
 const cron = require("node-cron");
 const { exec } = require("child_process");
 
-// Rulează scrape.js o dată pe zi la ora 6 dimineața
-cron.schedule("0 6 * * *", () => {
-  console.log("🔄 Rulez scraperul zilnic...");
-  exec("node scrape.js", (error, stdout, stderr) => {
-    if (error) {
-      console.error(`❌ Eroare la rularea scrape.js: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.error(`⚠️ STDERR: ${stderr}`);
-      return;
-    }
-    console.log(`✅ STDOUT:\n${stdout}`);
-  });
+// Rulează scrape.js o dată pe saptamana, luni la ora 6 dimineața
+cron.schedule("0 6 * * 1", () => {
+    exec("node data/scrape.js", (error, stdout, stderr) => {
+        if (error) {
+          console.error(`❌ Eroare la scraper: ${error.message}`);
+          return;
+        }
+        console.log(`✅ Scraper OK:\n${stdout}`);
+      
+        // După scraper, rulez predictorul
+        exec("python data/brm_predictor.py", (error2, stdout2, stderr2) => {
+          if (error2) {
+            console.error(`❌ Eroare la predictor: ${error2.message}`);
+            return;
+          }
+          console.log(`✅ Predictor OK:\n${stdout2}`);
+        });
+      });
+      
 });
+
+const predictiiRoutes = require('./routes/predictii');
+app.use('/api', predictiiRoutes);
+
+
+app.get('/api/validate-cui/:cui', async (req, res) => {
+    const { cui } = req.params;
+  
+    try {
+      const response = await axios.get(`https://api.infocui.ro/firma/${cui}`, {
+        headers: {
+          'Authorization': `Bearer ${process.env.INFOCUI_API_KEY}`,
+        },
+      });
+  
+      res.json(response.data);
+    } catch (error) {
+      console.error('❌ Eroare API InfoCUI:', error.response?.data || error.message);
+      res.status(500).json({ success: false, message: 'Eroare la validare CUI' });
+    }
+  });

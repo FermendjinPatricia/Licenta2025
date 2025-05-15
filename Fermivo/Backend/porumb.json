@@ -2,23 +2,23 @@
   "porumb": [
     {
       "zona": "VEST",
-      "pret_lei_tona": 971,
-      "variatie_procente": -1.72
+      "pret_lei_tona": 935,
+      "variatie_procente": -8.15
     },
     {
       "zona": "EST",
-      "pret_lei_tona": 963,
-      "variatie_procente": -0.31
+      "pret_lei_tona": 1041,
+      "variatie_procente": -1.05
     },
     {
       "zona": "SUD",
-      "pret_lei_tona": 1044,
-      "variatie_procente": 6.64
+      "pret_lei_tona": 1094,
+      "variatie_procente": 0.74
     },
     {
       "zona": "FOB CONSTANTA",
-      "pret_lei_tona": 1146,
-      "variatie_procente": 15.06
+      "pret_lei_tona": null,
+      "variatie_procente": 0
     }
   ]
 }

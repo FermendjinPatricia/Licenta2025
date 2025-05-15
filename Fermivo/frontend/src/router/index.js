@@ -2,10 +2,15 @@ import { createRouter, createWebHistory } from "vue-router";
 import LoginPage from "../views/LoginPage.vue";
 import RegisterPage from "../views/RegisterPage.vue";
 import HomePage from "@/views/CheckPricesEuronext.vue";
-import Hello from "@/views/Hello.vue";
+import HelloPage from "@/views/Hello.vue";
 import Home from "@/views/Home.vue";
 import About from "@/views/About.vue";
 import CheckPrices from "@/views/CheckPrices.vue";
+import AddAnunt from "@/views/AddAnunt.vue";
+import DetaliiAnunt from "@/views/DetaliiAnunt.vue";
+import EditareAnunt from "@/views/EditareAnunt.vue";
+import EditareProfil from "@/views/EditareProfil.vue";
+import HomeBuyer from "@/views/HomeBuyer.vue";
 
 const routes = [
   {
@@ -14,30 +19,63 @@ const routes = [
     component: LoginPage,
   },
   {
+    path: "/register",
+    name: "register",
+    component: RegisterPage,
+  },
+  {
+    path: "/",
+    name: "Hello",
+    component: HelloPage,
+  },
+  {
     path: "/home",
     name: "Home",
     component: Home,
-    meta: { requiresAuth: true }, // ✅ protejat
+    meta: { requiresAuth: true, allowedRoles: ['seller'] },
   },
   {
     path: "/check-prices",
     name: "CheckPrices",
     component: CheckPrices,
+    meta: { requiresAuth: true, allowedRoles: ['seller', 'buyer', 'admin'] },
+  },
+  // Seller & Buyer  routes
+  {
+    path: "/editare-profil/:id",
+    name: "EditareProfil",
+    component: EditareProfil,
+    meta: { requiresAuth: true, allowedRoles: ['seller', 'buyer'] }, 
+  },
+  {
+    path: "/adauga-anunt",
+    name: "AddAnunt",
+    component: AddAnunt,
+    meta: { requiresAuth: true, allowedRoles: ['seller'] }, // doar seller-ul are voie aici
+  },
+  {
+    path: "/editare-anunt/:id",
+    name: "EditareAnunt",
+    component: EditareAnunt,
+    meta: { requiresAuth: true, allowedRoles: ['seller'] }, // doar seller-ul are voie aici
+  },
+  {
+    path: "/anunturi/:id",
+    name: "DetaliiAnunt",
+    component: DetaliiAnunt,
+    meta: { requiresAuth: true, allowedRoles: ['seller', 'buyer', 'admin'] },
+  },
+  // Buyer routes
+  {
+    path: "/home-buyer",
+    name: "HomeBuyer",
+    component: HomeBuyer,
+    meta: { requiresAuth: true, allowedRoles: ['buyer'] }, // doar buyer-ul are voie aici
   },
   {
     path: "/about",
     name: "About",
     component: About,
-  },
-  {
-    path: "/",
-    name: "Hello",
-    component: Hello,
-  },
-  {
-    path: "/register",
-    name: "register",
-    component: RegisterPage,
   },
 ];
 
@@ -46,15 +84,26 @@ const router = createRouter({
   routes,
 });
 
-// 🔒 Guard global pentru rute protejate
+// Guard global pentru autentificare & roluri
 router.beforeEach((to, from, next) => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem('token');
   const isAuthenticated = !!localStorage.getItem("token");
-  if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated) {
-    alert("You must be logged in to access this page.");
-    next("/");
-  } else {
-    next();
+
+  // Verifică dacă e necesară autentificarea
+  if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated && !token) {
+    alert("Trebuie să fii autentificat pentru a accesa această pagină.");
+    return next("/");
   }
+
+  // Verifică dacă rolul utilizatorului este permis
+  const allowedRoles = to.meta.allowedRoles || [];
+  if (allowedRoles.length > 0 && (!user || !allowedRoles.includes(user.role))) {
+    alert(`Acces interzis pentru rolul: ${user?.role}`);
+    return next("/unauthorized");
+  }
+
+  next(); 
 });
 
 export default router;

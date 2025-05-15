@@ -18,7 +18,9 @@
         <button type="submit">Login</button>
 
         <div class="link-container">
-          <router-link to="/register">Nu ai un cont? Creează unul aici!</router-link>
+          <router-link to="/register"
+            >Nu ai un cont? Creează unul aici!</router-link
+          >
         </div>
       </form>
     </div>
@@ -26,34 +28,54 @@
 </template>
 
 <script>
-import axios from '../axios'; 
+import axios from "../axios";
 
 export default {
-  name: 'LoginPage',
+  name: "LoginPage",
   data() {
     return {
-      email: '',
-      parola: '',
-      errorMessage: '',
+      email: "",
+      parola: "",
+      errorMessage: "",
     };
   },
   methods: {
     async handleLogin() {
       try {
-        const response = await axios.post('/users/login', {
+        const response = await axios.post("/users/login", {
           email: this.email,
           parola: this.parola,
         });
 
         if (response.status === 200) {
-          localStorage.setItem('token', response.data.token);
-          this.$router.push('/home');
+          // Salvăm token + utilizator (ca să putem verifica rolul ulterior)
+          localStorage.setItem("token", response.data.token);
+          localStorage.setItem(
+            "user",
+            JSON.stringify(response.data.utilizator)
+          );
+
+          // Verificare rol:
+          const userRole = response.data.utilizator.role;
+          console.log("✅ Utilizator logat cu rol:", userRole);
+
+          // Redirectare în funcție de rol:
+          if (userRole === "seller") {
+            this.$router.push("/home");
+          } else if (userRole === "buyer") {
+            this.$router.push("/home-buyer");
+          } else if (userRole === "admin") {
+            this.$router.push("/admin-dashboard");
+          } else {
+            alert("Acces interzis pentru rolul: " + userRole);
+          }
         }
       } catch (error) {
-        this.errorMessage = error.response?.data?.message || 'Eroare la autentificare.';
+        this.errorMessage =
+          error.response?.data?.message || "Eroare la autentificare.";
         alert(this.errorMessage);
       }
-    }
+    },
   },
 };
 </script>
@@ -73,7 +95,7 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  font-family: 'Inria Sans', sans-serif;
+  font-family: "Inria Sans", sans-serif;
 }
 .form {
   background: rgba(208, 233, 150, 0.85);

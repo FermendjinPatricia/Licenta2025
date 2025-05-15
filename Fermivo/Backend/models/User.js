@@ -50,6 +50,17 @@ const userSchema = new mongoose.Schema(
       required: [true, "Parola este obligatorie."],
       minlength: [8, "Parola trebuie să conțină cel puțin 8 caractere."],
     },
+    role: {
+      type: String,
+      enum: ['buyer', 'seller', 'admin'],  // doar aceste valori sunt acceptate
+      default: 'buyer',
+      required: true
+    },
+    profilePicture: {
+      type: String,
+      default: "/uploads/default_profile.png"  // <- poza default (pui acolo imaginea generică)
+    },
+    
   },
   { timestamps: true }
 );

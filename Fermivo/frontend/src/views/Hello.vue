@@ -7,13 +7,13 @@
     </div>
     <img src="../assets/login.jpg" alt="Background" class="background-image" />
     <div class="content-box">
-      <h1>Hi there! 👋</h1>
+      <h1>
+        Bine ai venit! 👋</h1>
       <p>
-        We are <strong>Fermivo</strong>, your trusted marketplace for
-        agriculture. <br />
-        Connecting farmers and businesses, we help you buy, sell, and grow with
-        confidence. <br />
-        Welcome to the future of smart farming! 🚜🌾
+        Noi suntem <strong>Fermivo</strong>, partenerul tău de încredere în agricultura digitală. <br />
+        Punem în legătură fermierii și companiile, ajutându-te să cumperi, 
+        să vinzi și să te dezvolți cu încredere. <br />
+        Bine ai venit în viitorul agriculturii inteligente! 🚜🌾
       </p>
     </div>
     <nav v-if="menuOpen" class="menu">
@@ -33,7 +33,7 @@
 
 <script>
 export default {
-  name: "WelcomePage",
+  name: "HelloPage",
   data() {
     return {
       menuOpen: false,
