@@ -1,12 +1,27 @@
 <template>
   <div class="anunt-details">
     <h1>{{ anunt.produs }}</h1>
-    <p>Preț: {{ anunt.pret_lei_tona }} {{ anunt.moneda === 'euro' ? '€' : 'lei' }}/tonă</p>
+    <p>
+      Preț: {{ anunt.pret_lei_tona }}
+      {{ anunt.moneda === "euro" ? "€" : "lei" }}/tonă
+    </p>
     <p>Zona: {{ anunt.zona }}</p>
     <p>Descriere: {{ anunt.descriere }}</p>
-    <p v-if="isBuyer"><strong>Telefon:</strong> {{ anunt.telefon }}</p>
+    <p v-if="isBuyer && anunt.userId">
+      <strong>Vânzător:</strong>
+      <router-link
+        :to="`/profil-utilizator/${anunt.userId._id}`"
+        class="btn-vanzator"
+      >
+        {{ anunt.userId.nume }} {{ anunt.userId.prenume }}
+      </router-link>
+    </p>
 
-    <button v-if="isBuyer" class="btn-chat" @click="startConversation">Conversează</button>
+    <p v-if="isBuyer && anunt.userId"><strong>Telefon:</strong> {{ anunt.userId.telefon }}</p>
+
+    <button v-if="isBuyer" class="btn-chat" @click="startConversation">
+      Conversează
+    </button>
 
     <button v-if="!isBuyer" class="btn-edit" @click="goToEdit">Editează</button>
     <button v-if="!isBuyer" class="btn-delete" @click="deleteAnunt">
@@ -83,6 +98,25 @@ export default {
 </script>
 
 <style scoped>
+.btn-vanzator {
+  color: #1b5e20;
+  font-weight: bold;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.btn-vanzator:hover {
+  color: #0a3e13;
+}
+
+.link-vanzator {
+  color: #0288d1;
+  font-weight: bold;
+  text-decoration: none;
+}
+.link-vanzator:hover {
+  text-decoration: underline;
+}
+
 .anunt-details {
   background: rgba(197, 241, 186, 0.9);
   padding: 2rem;

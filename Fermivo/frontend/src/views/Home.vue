@@ -3,9 +3,20 @@
     <!-- HEADER -->
     <div class="header">
       <button class="menu-button" @click="toggleMenu">&#9776;</button>
-      <router-link to="/premium-info" class="premium-button">Devino Premium</router-link>
 
-      <router-link to="/home" class="site-title">Fermivo🌾</router-link>
+      <router-link v-if="isPremium" to="/home" class="site-title"
+        >Fermivo Premium🌾</router-link
+      >
+      <router-link v-if="!isPremium" to="/home" class="site-title"
+        >Fermivo🌾</router-link
+      >
+      <router-link
+        v-if="isLoggedIn && !isPremium"
+        to="/premium"
+        class="premium-button"
+      >
+        Devino Premium
+      </router-link>
 
       <div class="header-right">
         <div class="header-right" v-if="isLoggedIn && user">
@@ -80,7 +91,20 @@
       <p v-if="cereals.length === 0" class="no-ads">
         Nu ai adăugat încă niciun anunț. Începe chiar acum! 🚜
       </p>
-      <div v-else v-for="(item, index) in cereals" :key="index" class="card">
+      <div v-else class="filtru-categorii">
+          <button
+            v-for="categorie in categories"
+            :key="categorie"
+            :class="{ activ: selectedCategory === categorie }"
+            @click="selectedCategory = categorie"
+          >
+            {{ categorie }}
+          </button>
+        </div>
+
+      <div v-for="(item, index) in anunturiFiltrate" :key="index" class="card">
+        
+
         <div class="card-text">
           <p>
             <strong>{{ item.produs }}</strong>
@@ -117,6 +141,7 @@
 
 <script>
 import axios from "axios";
+import { isProxy } from "vue";
 
 export default {
   name: "HomeWithAds",
@@ -132,6 +157,18 @@ export default {
       touchStartX: 0,
       touchEndX: 0,
       autoplayInterval: null,
+      isPremium: false,
+      selectedCategory: "toate",
+      categories: [
+        "toate",
+        "Grâu panificație",
+        "Grâu furajer",
+        "Orz",
+        "Orz furajer",
+        "Porumb",
+        "Floarea soarelui",
+        "Rapiță",
+      ],
     };
   },
   computed: {
@@ -144,6 +181,14 @@ export default {
       return this.user?.profilePicture
         ? `http://localhost:5000${this.user.profilePicture}`
         : `http://localhost:5000/uploads/default_profile.jpg`;
+    },
+    anunturiFiltrate() {
+      if (this.selectedCategory === "toate") return this.cereals;
+
+      const selected = this.normalize(this.selectedCategory);
+      return this.cereals.filter(
+        (anunt) => this.normalize(anunt.produs) === selected
+      );
     },
   },
   created() {
@@ -187,6 +232,7 @@ export default {
         );
         if (response.data.success) {
           this.user = response.data.user;
+          this.isPremium = response.data.user.isPremium;
         }
       } catch (error) {
         console.error("❌ Eroare la fetch user:", error);
@@ -251,11 +297,47 @@ export default {
         }
       }, 10000); // la 10 secunde
     },
+    normalize(text) {
+      return text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "")
+        .trim();
+    },
   },
 };
 </script>
 
 <style scoped>
+.filtru-categorii {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem auto;
+  justify-content: center;
+}
+
+.filtru-categorii button {
+  background-color: #f0f0f0;
+  color: #1b5e20;
+  border: 1px solid #1b5e20;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.filtru-categorii button.activ,
+.filtru-categorii button:hover {
+  background-color: #1b5e20;
+  color: white;
+}
+
+.welcome-page {
+  font-family: "Inria Sans", sans-serif;
+}
 .header {
   display: flex;
   align-items: center;

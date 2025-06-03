@@ -32,10 +32,14 @@ router.post("/", verifyToken, async (req, res) => {
 // ✅ GET /api/anunturi - Listare toate anunturi
 router.get("/", async (req, res) => {
   try {
-    const anunturi = await Anunt.find().sort({ createdAt: -1 });
-    res.json({ success: true, anunturi });
+    const anunturi = await Anunt.find()
+      .populate("userId", "nume prenume isPremium")
+      .sort({ "userId.isPremium": -1, createdAt: -1 }); // întâi premium, apoi cele mai noi
+
+    res.status(200).json({ success: true, anunturi });
   } catch (error) {
-    res.status(500).json({ success: false, error: "Eroare la listare anunțuri" });
+    console.error("Eroare la get anunturi:", error);
+    res.status(500).json({ success: false, message: "Eroare server." });
   }
 });
 
@@ -52,7 +56,7 @@ router.get("/user/:id", async (req, res) => {
 // ✅ GET /api/anunturi/:id - Un singur anunt (pentru editare/detalii)
 router.get("/:id", async (req, res) => {
   try {
-    const anunt = await Anunt.findById(req.params.id);
+    const anunt = await Anunt.findById(req.params.id).populate("userId", "nume prenume telefon");
     if (!anunt) return res.status(404).json({ message: "Anunțul nu a fost găsit." });
     res.json({ success: true, anunt });
   } catch (error) {

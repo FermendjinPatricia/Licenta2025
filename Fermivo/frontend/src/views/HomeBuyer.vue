@@ -3,9 +3,19 @@
     <div class="header">
       <button class="menu-button" @click="toggleMenu">&#9776;</button>
 
-      <router-link to="/premium-info" class="premium-button">Devino Premium</router-link>
-
-      <router-link to="/home-buyer" class="site-title">Fermivo🌾</router-link>
+      <router-link v-if="isPremium" to="/home-buyer" class="site-title"
+        >Fermivo Premium🌾</router-link
+      >
+      <router-link v-else to="/home-buyer" class="site-title"
+        >Fermivo🌾</router-link
+      >
+      <router-link
+        v-if="isLoggedIn && !isPremium"
+        to="/premium"
+        class="premium-button"
+      >
+        Devino Premium
+      </router-link>
 
       <div class="header-right">
         <div class="header-right" v-if="user">
@@ -74,10 +84,19 @@
       <p v-if="anunturi.length === 0" class="no-ads">
         Nu există anunțuri disponibile momentan.
       </p>
+      <div v-else class="filtru-categorii">
+        <button
+          v-for="categorie in categories"
+          :key="categorie"
+          :class="{ activ: selectedCategory === categorie }"
+          @click="selectedCategory = categorie"
+        >
+          {{ categorie }}
+        </button>
+      </div>
 
       <div
-        v-else
-        v-for="(item, index) in anunturi"
+        v-for="(item, index) in anunturiFiltrate"
         :key="index"
         class="card card-grid"
       >
@@ -86,6 +105,20 @@
           <p>
             <strong>{{ item.produs }}</strong>
           </p>
+          <span
+            v-if="item.userId?.isPremium"
+            style="
+              background: #f5b301;
+              color: white;
+              padding: 2px 8px;
+              border-radius: 12px;
+              font-size: 0.85rem;
+              font-weight: bold;
+            "
+          >
+            🌟 Promovat
+          </span>
+
           <p>
             Preț: {{ item.pret_lei_tona }}
             {{ item.moneda === "euro" ? "€" : "lei" }}/tonă
@@ -152,6 +185,18 @@ export default {
       touchStartX: 0,
       touchEndX: 0,
       autoplayInterval: null,
+      isPremium: false,
+      selectedCategory: "toate",
+      categories: [
+        "toate",
+        "Grâu panificație",
+        "Grâu furajer",
+        "Orz",
+        "Orz furajer",
+        "Porumb",
+        "Floarea soarelui",
+        "Rapiță",
+      ],
     };
   },
   computed: {
@@ -164,6 +209,14 @@ export default {
       return this.user?.profilePicture
         ? `http://localhost:5000${this.user.profilePicture}`
         : `http://localhost:5000/uploads/default_profile.jpg`;
+    },
+    anunturiFiltrate() {
+      if (this.selectedCategory === "toate") return this.anunturi;
+
+      const selected = this.normalize(this.selectedCategory);
+      return this.anunturi.filter(
+        (anunt) => this.normalize(anunt.produs) === selected
+      );
     },
   },
   async created() {
@@ -192,6 +245,7 @@ export default {
         );
         if (response.data.success) {
           this.user = response.data.user;
+          this.isPremium = response.data.user.isPremium;
         }
       } catch (error) {
         console.error("❌ Eroare la fetch user:", error);
@@ -212,6 +266,11 @@ export default {
         const response = await axios.get("/anunturi");
         if (response.data.success) {
           this.anunturi = response.data.anunturi;
+          this.anunturi.sort((a, b) => {
+            const aPremium = a.userId?.isPremium ? 1 : 0;
+            const bPremium = b.userId?.isPremium ? 1 : 0;
+            return bPremium - aPremium; // premium primele
+          });
         }
       } catch (error) {
         console.error("❌ Eroare la anunturi:", error);
@@ -282,11 +341,188 @@ export default {
     toggleProfileMenu() {
       this.showProfileMenu = !this.showProfileMenu;
     },
+    normalize(text) {
+      return text
+        .toLowerCase()
+        .normalize("NFD") // elimină diacritice
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "") // elimină spațiile
+        .trim();
+    },
   },
 };
 </script>
 
 <style scoped>
+.filtru-categorii {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem auto;
+  justify-content: center;
+}
+
+.filtru-categorii button {
+  background-color: #f0f0f0;
+  color: #1b5e20;
+  border: 1px solid #1b5e20;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.filtru-categorii button.activ,
+.filtru-categorii button:hover {
+  background-color: #1b5e20;
+  color: white;
+}
+
+html,
+body {
+  overflow: hidden;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+.welcome-page {
+  font-family: "Inria Sans", sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 97%;
+  background: rgba(253, 253, 253, 0.9);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  position: relative;
+}
+
+.site-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1b5e20;
+  text-decoration: none;
+  font-family: "Inria Sans", sans-serif;
+  z-index: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.premium-button {
+  background-color: #f5b301;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  margin-left: 10px;
+  margin-right: 60px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.premium-button:hover {
+  background-color: #f5a301;
+}
+
+.user-profile-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 8px;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #1b5e20;
+}
+
+.user-name {
+  font-weight: bold;
+  color: #1b5e20;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+}
+
+.profile-menu a {
+  color: #1b5e20;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.profile-menu a:hover {
+  text-decoration: underline;
+}
+
+.chat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-left: 1rem;
+  cursor: pointer;
+}
+
+.chat-icon:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s;
+}
+
+.menu-button {
+  font-size: 2rem;
+  background: rgba(217, 242, 208, 1);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #1b5e20;
+}
+
+.sign-in-button,
+.sign-out-button {
+  background-color: #1b5e20;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 7px;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+}
+
+.sign-in-button:hover,
+.sign-out-button:hover {
+  background-color: #093b12;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -313,21 +549,6 @@ export default {
   display: flex;
   align-items: right;
   gap: 0.2rem;
-}
-
-.premium-button {
-  background-color: #f5b301;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  margin-left: 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-}
-.premium-button:hover {
-  background-color: #f5a301;
 }
 
 .user-profile {
@@ -561,7 +782,6 @@ p {
   object-fit: cover;
   border-radius: 12px;
 }
-
 
 .no-ads {
   text-align: center;

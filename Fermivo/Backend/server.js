@@ -530,4 +530,4 @@ const blockedRoutes = require("./routes/BlockedUsers");
 app.use("/api/blocked", blockedRoutes);
 
 const paymentsPremiumRoutes = require('./routes/PaymentsPremium');
-app.use('/payments-premium', paymentsPremiumRoutes);
+app.use('/api/payments-premium', paymentsPremiumRoutes);

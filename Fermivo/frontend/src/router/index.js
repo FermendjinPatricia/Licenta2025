@@ -15,6 +15,7 @@ import OverviewConversatii from "@/views/OverviewConversatii.vue";
 import Chat from "@/views/Chat.vue";
 import AdminPage from "@/views/AdminPage.vue";
 import PremiumInfo from "@/views/PremiumInfo.vue";
+import ProfilUtilizator from "@/views/ProfilUtilizator.vue";
 
 const routes = [
   {
@@ -45,6 +46,12 @@ const routes = [
     meta: { requiresAuth: true, allowedRoles: ["seller", "buyer", "admin"] },
   },
   // Seller & Buyer  routes
+  {
+    path: "/profil-utilizator/:id",
+    name: "ProfilUtilizator",
+    component: ProfilUtilizator,
+    meta: { requiresAuth: true, allowedRoles: ["seller", "buyer", "admin"] }, // doar seller-ul, buyer-ul si admin-ul au voie aici
+  },
   {
     path: "/premium",
     name: "PremiumInfo",

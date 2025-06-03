@@ -52,15 +52,18 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['buyer', 'seller', 'admin'],  // doar aceste valori sunt acceptate
-      default: 'buyer',
-      required: true
+      enum: ["buyer", "seller", "admin"], // doar aceste valori sunt acceptate
+      default: "buyer",
+      required: true,
+    },
+    isPremium: {
+      type: Boolean,
+      default: false,
     },
     profilePicture: {
       type: String,
-      default: "/uploads/default_profile.png"  // <- poza default (pui acolo imaginea generică)
+      default: "/uploads/default_profile.png", // <- poza default (pui acolo imaginea generică)
     },
-    
   },
   { timestamps: true }
 );

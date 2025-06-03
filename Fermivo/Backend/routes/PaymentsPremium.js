@@ -16,7 +16,7 @@ router.post('/create-checkout-session', async (req, res) => {
       }],
       mode: 'subscription',
       success_url: 'http://localhost:8080/premium-success?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: 'http://localhost:8080/premium-cancel',
+      cancel_url: 'http://localhost:8080/premium',
       metadata: {
         userId: userId
       }
