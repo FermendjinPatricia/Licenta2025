@@ -1,24 +1,38 @@
 <template>
   <div class="welcome-page">
-    <!-- HEADER -->
     <div class="header">
       <button class="menu-button" @click="toggleMenu">&#9776;</button>
 
-      <router-link to="/" class="site-title">Fermivo🌾</router-link>
+      <router-link to="/premium-info" class="premium-button">Devino Premium</router-link>
 
-      <div class="header-right" v-if="user">
-        <div class="user-profile" @click="toggleProfileMenu">
-          <img :src="userProfilePicture" class="profile-picture" />
-          <span class="user-name">{{ userName }}</span>
+      <router-link to="/home-buyer" class="site-title">Fermivo🌾</router-link>
 
-          <div v-if="showProfileMenu" class="profile-menu">
-            <router-link :to="`/editare-profil/${user._id}`"
-              >Editează Profil</router-link
-            >
+      <div class="header-right">
+        <div class="header-right" v-if="user">
+          <div class="user-profile-wrapper">
+            <div class="user-profile" @click="toggleProfileMenu">
+              <img :src="userProfilePicture" class="profile-picture" />
+              <span class="user-name">{{ userName }}</span>
+            </div>
+
+            <img
+              src="../assets/chat-icon.png"
+              class="chat-icon"
+              alt="Chat"
+              @click="$router.push('/chat')"
+            />
+
+            <div v-if="showProfileMenu" class="profile-menu">
+              <router-link :to="`/editare-profil/${user._id}`"
+                >Editează Profil</router-link
+              >
+            </div>
           </div>
         </div>
 
-        <button class="sign-out-button" @click="logout">Logout</button>
+        <button v-if="isLoggedIn" class="sign-out-button" @click="handleLogout">
+          Sign Out
+        </button>
       </div>
     </div>
 
@@ -61,18 +75,50 @@
         Nu există anunțuri disponibile momentan.
       </p>
 
-      <div v-else v-for="(item, index) in anunturi" :key="index" class="card">
-        <div class="card-text">
+      <div
+        v-else
+        v-for="(item, index) in anunturi"
+        :key="index"
+        class="card card-grid"
+      >
+        <!-- 🟩 Coloana 1: Info anunț -->
+        <div class="anunt-info">
           <p>
             <strong>{{ item.produs }}</strong>
           </p>
-          <p>Preț: {{ item.pret_lei_tona }} lei/tonă</p>
-          <p>Zona: {{ item.zona }}</p>
-
+          <p>
+            Preț: {{ item.pret_lei_tona }}
+            {{ item.moneda === "euro" ? "€" : "lei" }}/tonă
+          </p>
+          <p>Oraș: {{ item.zona }}</p>
           <router-link :to="`/anunturi/${item._id}`" class="detalii-button">
             Vezi detalii
           </router-link>
         </div>
+
+        <!-- 🟨 Coloana 2: Prețuri BRM -->
+        <div class="brm-table" v-if="getPreturiProdus(item.produs).length">
+          <h4>Prețuri azi</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Zonă</th>
+                <th>Preț</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(pret, idx) in getPreturiProdus(item.produs)"
+                :key="idx"
+              >
+                <td>{{ pret.zona }}</td>
+                <td>{{ pret.pret_lei_tona }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 🟦 Coloana 3: Imagine -->
         <img src="../assets/grau.jpg" alt="Imagine produs" class="card-image" />
       </div>
     </div>
@@ -95,8 +141,12 @@ export default {
   name: "HomeBuyer",
   data() {
     return {
+      isLoggedIn: false,
       user: null,
       anunturi: [],
+      scraperData: [],
+      menuOpen: false,
+      showProfileMenu: false,
       predictii: [],
       currentSlide: 0,
       touchStartX: 0,
@@ -118,10 +168,13 @@ export default {
   },
   async created() {
     const localUser = JSON.parse(localStorage.getItem("user"));
+
     if (localUser && localUser._id) {
+      this.isLoggedIn = true;
       await this.fetchUser(localUser._id);
     }
     this.fetchAnunturi();
+    await this.fetchScraperData();
     this.fetchPredictii();
     this.startAutoplay();
   },
@@ -144,6 +197,16 @@ export default {
         console.error("❌ Eroare la fetch user:", error);
       }
     },
+    async fetchScraperData() {
+      try {
+        const response = await axios.get("http://localhost:5000/scrape/brm");
+        if (response.data.success) {
+          this.scraperData = response.data;
+        }
+      } catch (error) {
+        console.error("❌ Eroare la fetch scraper:", error);
+      }
+    },
     async fetchAnunturi() {
       try {
         const response = await axios.get("/anunturi");
@@ -163,6 +226,19 @@ export default {
       } catch (error) {
         console.error("❌ Eroare la fetch predictii:", error);
       }
+    },
+    getPreturiProdus(produs) {
+      const mapping = {
+        "Grau Panificatie": "grau_panificatie",
+        "Grau Furajer": "grau_furajer",
+        "Floarea Soarelui": "floarea_soarelui",
+        Rapita: "rapita",
+        Porumb: "porumb",
+        Orz: "orz",
+        "Orz Furajer": "orz_furajer",
+      };
+      const key = mapping[produs];
+      return this.scraperData[key] || [];
     },
     nextSlide() {
       this.currentSlide = (this.currentSlide + 1) % this.predictii.length;
@@ -193,9 +269,9 @@ export default {
         if (this.predictii.length) {
           this.nextSlide();
         }
-      }, 5000); // la 5 secunde
+      }, 10000); // la 10 secunde
     },
-    logout() {
+    handleLogout() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       this.$router.push("/login");
@@ -239,6 +315,21 @@ export default {
   gap: 0.2rem;
 }
 
+.premium-button {
+  background-color: #f5b301;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  margin-left: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.premium-button:hover {
+  background-color: #f5a301;
+}
+
 .user-profile {
   display: flex;
   align-items: center;
@@ -257,6 +348,27 @@ export default {
 .user-name {
   font-weight: bold;
   color: #1b5e20;
+}
+
+.chat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-left: 1rem;
+  cursor: pointer;
+}
+
+.chat-icon:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s;
+}
+
+.user-profile-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 8px;
 }
 
 .profile-menu {
@@ -377,6 +489,79 @@ p {
   border-radius: 12px;
   margin-left: 1rem;
 }
+
+.card.card-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1.5fr 1fr;
+  gap: 1rem;
+  align-items: start;
+  background: rgba(197, 241, 186, 0.8);
+  border-radius: 20px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.anunt-info p {
+  margin: 0.2rem 0;
+  font-weight: bold;
+}
+
+.brm-table {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: "Inria Sans", sans-serif;
+  font-size: 0.9rem;
+  width: 100%;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+}
+
+.brm-table h4 {
+  margin-bottom: 0.5rem;
+  margin-right: 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #1b5e20;
+  border-bottom: 1px solid #c0c0c0;
+  padding-bottom: 0.3rem;
+}
+
+.brm-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.brm-table th {
+  background-color: #d9f2d0;
+  color: #1b5e20;
+  font-weight: bold;
+  padding: 6px;
+  border-bottom: 1px solid #ccc;
+}
+
+.brm-table td {
+  padding: 6px;
+  border-bottom: 1px solid #eee;
+}
+
+.brm-table tr:last-child td {
+  border-bottom: none;
+}
+.brm-table tr:hover {
+  background-color: #f1f8e9;
+}
+
+.card-image {
+  margin-left: 1.5rem;
+  width: auto;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
 
 .no-ads {
   text-align: center;

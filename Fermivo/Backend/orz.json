@@ -17,8 +17,8 @@
     },
     {
       "zona": "FOB CONSTANTA",
-      "pret_lei_tona": 1039,
-      "variatie_procente": 6.02
+      "pret_lei_tona": null,
+      "variatie_procente": 0
     }
   ]
 }

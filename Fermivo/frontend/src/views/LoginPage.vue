@@ -65,7 +65,7 @@ export default {
           } else if (userRole === "buyer") {
             this.$router.push("/home-buyer");
           } else if (userRole === "admin") {
-            this.$router.push("/admin-dashboard");
+            this.$router.push("/admin");
           } else {
             alert("Acces interzis pentru rolul: " + userRole);
           }

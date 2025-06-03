@@ -11,6 +11,10 @@ import DetaliiAnunt from "@/views/DetaliiAnunt.vue";
 import EditareAnunt from "@/views/EditareAnunt.vue";
 import EditareProfil from "@/views/EditareProfil.vue";
 import HomeBuyer from "@/views/HomeBuyer.vue";
+import OverviewConversatii from "@/views/OverviewConversatii.vue";
+import Chat from "@/views/Chat.vue";
+import AdminPage from "@/views/AdminPage.vue";
+import PremiumInfo from "@/views/PremiumInfo.vue";
 
 const routes = [
   {
@@ -32,45 +36,70 @@ const routes = [
     path: "/home",
     name: "Home",
     component: Home,
-    meta: { requiresAuth: true, allowedRoles: ['seller'] },
+    meta: { requiresAuth: true, allowedRoles: ["seller"] },
   },
   {
     path: "/check-prices",
     name: "CheckPrices",
     component: CheckPrices,
-    meta: { requiresAuth: true, allowedRoles: ['seller', 'buyer', 'admin'] },
+    meta: { requiresAuth: true, allowedRoles: ["seller", "buyer", "admin"] },
   },
   // Seller & Buyer  routes
+  {
+    path: "/premium",
+    name: "PremiumInfo",
+    component: PremiumInfo,
+    meta: { requiresAuth: true, allowedRoles: ["seller", "buyer", "admin"] }, // doar seller-ul, buyer-ul si admin-ul au voie aici
+  },
   {
     path: "/editare-profil/:id",
     name: "EditareProfil",
     component: EditareProfil,
-    meta: { requiresAuth: true, allowedRoles: ['seller', 'buyer'] }, 
+    meta: { requiresAuth: true, allowedRoles: ["seller", "buyer"] },
+  },
+  {
+    path: "/chat",
+    name: "ChatOverview",
+    component: OverviewConversatii,
+    meta: { requiresAuth: true, allowedRoles: ["seller", "buyer"] }, // doar seller-ul si buyer-ul au voie aici
+  },
+  {
+    path: "/chat/:id",
+    name: "Chat",
+    component: Chat,
+    meta: { requiresAuth: true, allowedRoles: ["seller", "buyer"] }, // doar seller-ul si buyer-ul au voie aici
   },
   {
     path: "/adauga-anunt",
     name: "AddAnunt",
     component: AddAnunt,
-    meta: { requiresAuth: true, allowedRoles: ['seller'] }, // doar seller-ul are voie aici
+    meta: { requiresAuth: true, allowedRoles: ["seller"] }, // doar seller-ul are voie aici
   },
   {
     path: "/editare-anunt/:id",
     name: "EditareAnunt",
     component: EditareAnunt,
-    meta: { requiresAuth: true, allowedRoles: ['seller'] }, // doar seller-ul are voie aici
+    meta: { requiresAuth: true, allowedRoles: ["seller"] }, // doar seller-ul are voie aici
   },
   {
     path: "/anunturi/:id",
     name: "DetaliiAnunt",
     component: DetaliiAnunt,
-    meta: { requiresAuth: true, allowedRoles: ['seller', 'buyer', 'admin'] },
+    meta: { requiresAuth: true, allowedRoles: ["seller", "buyer", "admin"] },
   },
   // Buyer routes
   {
     path: "/home-buyer",
     name: "HomeBuyer",
     component: HomeBuyer,
-    meta: { requiresAuth: true, allowedRoles: ['buyer'] }, // doar buyer-ul are voie aici
+    meta: { requiresAuth: true, allowedRoles: ["buyer"] }, // doar buyer-ul are voie aici
+  },
+  // Admin routes
+  {
+    path: "/admin",
+    name: "AdminPage",
+    component: AdminPage,
+    meta: { requiresAuth: true, allowedRoles: ["admin"] },
   },
   {
     path: "/about",
@@ -87,11 +116,15 @@ const router = createRouter({
 // Guard global pentru autentificare & roluri
 router.beforeEach((to, from, next) => {
   const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   const isAuthenticated = !!localStorage.getItem("token");
 
   // Verifică dacă e necesară autentificarea
-  if (to.matched.some(record => record.meta.requiresAuth) && !isAuthenticated && !token) {
+  if (
+    to.matched.some((record) => record.meta.requiresAuth) &&
+    !isAuthenticated &&
+    !token
+  ) {
     alert("Trebuie să fii autentificat pentru a accesa această pagină.");
     return next("/");
   }
@@ -103,7 +136,7 @@ router.beforeEach((to, from, next) => {
     return next("/unauthorized");
   }
 
-  next(); 
+  next();
 });
 
 export default router;

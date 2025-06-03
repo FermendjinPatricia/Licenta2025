@@ -6,7 +6,7 @@ const verifyToken = require("../middlewares/verifyToken");
 // ✅ POST /api/anunturi - Adaugă anunț
 router.post("/", verifyToken, async (req, res) => {
   try {
-    const { produs, pret_lei_tona, zona, descriere } = req.body;
+    const { produs, pret_lei_tona,moneda, zona, descriere } = req.body;
 
     if (!produs || !pret_lei_tona || !zona || !descriere) {
       return res.status(400).json({ message: "Toate câmpurile sunt obligatorii." });
@@ -15,6 +15,7 @@ router.post("/", verifyToken, async (req, res) => {
     const anuntNou = new Anunt({
       produs,
       pret_lei_tona,
+      moneda: moneda || "lei", // default la lei
       zona,
       descriere,
       userId: req.user._id,
@@ -62,11 +63,11 @@ router.get("/:id", async (req, res) => {
 // ✅ PUT /api/anunturi/:id - Update anunt
 router.put("/:id", verifyToken, async (req, res) => {
   try {
-    const { produs, pret_lei_tona, zona, descriere } = req.body;
+    const { produs, pret_lei_tona, moneda, zona, descriere } = req.body;
 
     const updatedAnunt = await Anunt.findByIdAndUpdate(
       req.params.id,
-      { produs, pret_lei_tona, zona, descriere },
+      { produs, pret_lei_tona, moneda, zona, descriere },
       { new: true }
     );
 
@@ -83,11 +84,24 @@ router.put("/:id", verifyToken, async (req, res) => {
 // ✅ DELETE /api/anunturi/:id - Șterge anunț
 router.delete("/:id", verifyToken, async (req, res) => {
   try {
-    await Anunt.findByIdAndDelete(req.params.id);
+    const anunt = await Anunt.findById(req.params.id);
+
+    if (!anunt) {
+      return res.status(404).json({ success: false, message: "Anunțul nu a fost găsit." });
+    }
+
+    // opțional: verificare userId
+    if (anunt.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "Nu ai dreptul să ștergi acest anunț." });
+    }
+
+    await anunt.deleteOne();
     res.json({ success: true, message: "Anunț șters cu succes" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Eroare server" });
+    console.error("❌ Eroare la ștergere anunț:", error);
+    res.status(500).json({ success: false, message: "Eroare server la ștergere" });
   }
 });
+
 
 module.exports = router;

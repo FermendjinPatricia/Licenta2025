@@ -2,18 +2,18 @@
   "orz_furajer": [
     {
       "zona": "VEST",
-      "pret_lei_tona": 1028,
-      "variatie_procente": 1.28
+      "pret_lei_tona": null,
+      "variatie_procente": 0
     },
     {
       "zona": "EST",
-      "pret_lei_tona": 1006,
-      "variatie_procente": -3.27
+      "pret_lei_tona": 967,
+      "variatie_procente": -7.9
     },
     {
       "zona": "SUD",
-      "pret_lei_tona": 1012,
-      "variatie_procente": -2.69
+      "pret_lei_tona": 1010,
+      "variatie_procente": 0
     },
     {
       "zona": "FOB CONSTANTA",

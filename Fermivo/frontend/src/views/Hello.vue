@@ -15,6 +15,7 @@
         să vinzi și să te dezvolți cu încredere. <br />
         Bine ai venit în viitorul agriculturii inteligente! 🚜🌾
       </p>
+      <router-link to="/login" class="sign-in-button">Vino alături de noi!</router-link>
     </div>
     <nav v-if="menuOpen" class="menu">
       <ul>

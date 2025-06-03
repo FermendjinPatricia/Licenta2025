@@ -20,6 +20,14 @@
               <label for="pret">Preț (lei/tonă):</label>
               <input type="number" id="pret" v-model="anunt.pret_lei_tona" required />
             </div>
+
+            <div class="input-group">
+              <label for="moneda">Monedă:</label>
+              <select id="moneda" v-model="anunt.moneda" required>
+                <option value="lei">Lei</option>
+                <option value="euro">Euro</option>
+              </select>
+            </div>
   
             <div class="input-group">
               <label for="zona">Zona(Oraș):</label>
@@ -75,6 +83,7 @@
         anunt: {
           produs: "",
           pret_lei_tona: "",
+          moneda: "lei",
           zona: "",
           descriere: "",
         },
@@ -102,6 +111,7 @@
         const response = await axios.get(`/anunturi/${id}`);
         if (response.data.success) {
           this.anunt = response.data.anunt;
+          this.anunt.moneda = this.anunt.moneda || "lei";
           this.fetchScraperData();
         }
       } catch (error) {
@@ -146,6 +156,7 @@
             {
               produs: this.anunt.produs,
               pret_lei_tona: parseFloat(this.anunt.pret_lei_tona),
+              moneda: this.anunt.moneda,
               zona: this.anunt.zona,
               descriere: this.anunt.descriere,
             },

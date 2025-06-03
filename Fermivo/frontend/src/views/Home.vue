@@ -3,16 +3,30 @@
     <!-- HEADER -->
     <div class="header">
       <button class="menu-button" @click="toggleMenu">&#9776;</button>
+      <router-link to="/premium-info" class="premium-button">Devino Premium</router-link>
 
-      <router-link to="/" class="site-title">Fermivo🌾</router-link>
+      <router-link to="/home" class="site-title">Fermivo🌾</router-link>
 
       <div class="header-right">
-        <div v-if="isLoggedIn" class="user-profile" @click="toggleProfileMenu">
-          <img :src="userProfilePicture" class="profile-picture" />
-          <span class="user-name">{{ userName }}</span>
+        <div class="header-right" v-if="isLoggedIn && user">
+          <div class="user-profile-wrapper">
+            <div class="user-profile" @click="toggleProfileMenu">
+              <img :src="userProfilePicture" class="profile-picture" />
+              <span class="user-name">{{ userName }}</span>
+            </div>
 
-          <div v-if="showProfileMenu" class="profile-menu">
-            <router-link :to="`/editare-profil/${user?._id}`">Editează Profil</router-link>
+            <img
+              src="../assets/chat-icon.png"
+              class="chat-icon"
+              alt="Chat"
+              @click="$router.push('/chat')"
+            />
+
+            <div v-if="showProfileMenu" class="profile-menu">
+              <router-link :to="`/editare-profil/${user._id}`"
+                >Editează Profil</router-link
+              >
+            </div>
           </div>
         </div>
 
@@ -29,21 +43,28 @@
     <div class="content-box">
       <h1>Bine ai venit! 👋</h1>
       <p>
-        Noi suntem <strong>Fermivo</strong>, partenerul tău de încredere în agricultura digitală. <br />
-        Punem în legătură fermierii și companiile, ajutându-te să cumperi, să vinzi și să te dezvolți cu încredere. <br />
+        Noi suntem <strong>Fermivo</strong>, partenerul tău de încredere în
+        agricultura digitală. <br />
+        Punem în legătură fermierii și companiile, ajutându-te să cumperi, să
+        vinzi și să te dezvolți cu încredere. <br />
         Bine ai venit în viitorul agriculturii inteligente! 🚜🌾
       </p>
     </div>
 
     <!-- PREDICTII SLIDER -->
-    <div v-if="predictii.length" 
-         class="predictii-slider"
-         @touchstart="handleTouchStart"
-         @touchend="handleTouchEnd">
+    <div
+      v-if="predictii.length"
+      class="predictii-slider"
+      @touchstart="handleTouchStart"
+      @touchend="handleTouchEnd"
+    >
       <div class="slide">
         <h3>{{ predictii[currentSlide].produs }}</h3>
         <p><strong>Zonă:</strong> {{ predictii[currentSlide].zona }}</p>
-        <p><strong>Preț estimat:</strong> {{ predictii[currentSlide].pret_lei_predictie }} </p>
+        <p>
+          <strong>Preț estimat:</strong>
+          {{ predictii[currentSlide].pret_lei_predictie }}
+        </p>
       </div>
       <div class="slide-controls">
         <button @click="prevSlide">⬅️</button>
@@ -51,16 +72,23 @@
       </div>
     </div>
 
+    <router-link to="/adauga-anunt" class="adauga_anunt"
+      >Adaugă un anunț</router-link
+    >
     <!-- ANUNTURI -->
     <div class="card-container">
       <p v-if="cereals.length === 0" class="no-ads">
         Nu ai adăugat încă niciun anunț. Începe chiar acum! 🚜
       </p>
-
       <div v-else v-for="(item, index) in cereals" :key="index" class="card">
         <div class="card-text">
-          <p><strong>{{ item.produs }}</strong></p>
-          <p>Preț: {{ item.pret_lei_tona }} lei/tonă</p>
+          <p>
+            <strong>{{ item.produs }}</strong>
+          </p>
+          <p>
+            Preț: {{ item.pret_lei_tona }}
+            {{ item.moneda === "euro" ? "€" : "lei" }}/tonă
+          </p>
           <p>Oraș: {{ item.zona }}</p>
 
           <router-link :to="`/anunturi/${item._id}`" class="detalii-button">
@@ -69,8 +97,6 @@
         </div>
         <img src="../assets/grau.jpg" alt="Imagine produs" class="card-image" />
       </div>
-
-      <router-link to="/adauga-anunt" class="adauga_anunt">Adaugă un anunț</router-link>
     </div>
 
     <!-- MENIU -->
@@ -78,7 +104,11 @@
       <ul>
         <li><router-link to="/login">Login</router-link></li>
         <li><router-link to="/register">Register</router-link></li>
-        <li><router-link to="/check-prices">Check prices on the market</router-link></li>
+        <li>
+          <router-link to="/check-prices"
+            >Check prices on the market</router-link
+          >
+        </li>
         <li><router-link to="/about">About</router-link></li>
       </ul>
     </nav>
@@ -106,7 +136,9 @@ export default {
   },
   computed: {
     userName() {
-      return this.user ? `${this.user.nume} ${this.user.prenume}` : "Utilizator";
+      return this.user
+        ? `${this.user.nume} ${this.user.prenume}`
+        : "Utilizator";
     },
     userProfilePicture() {
       return this.user?.profilePicture
@@ -150,7 +182,9 @@ export default {
         const userId = JSON.parse(localStorage.getItem("user"))?._id;
         if (!userId) return;
 
-        const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
+        const response = await axios.get(
+          `http://localhost:5000/api/users/${userId}`
+        );
         if (response.data.success) {
           this.user = response.data.user;
         }
@@ -163,7 +197,9 @@ export default {
         const userId = JSON.parse(localStorage.getItem("user"))?._id;
         if (!userId) return;
 
-        const response = await axios.get(`http://localhost:5000/api/anunturi/user/${userId}`);
+        const response = await axios.get(
+          `http://localhost:5000/api/anunturi/user/${userId}`
+        );
         if (response.data.success) {
           this.cereals = response.data.anunturi;
         } else {
@@ -188,7 +224,8 @@ export default {
       this.currentSlide = (this.currentSlide + 1) % this.predictii.length;
     },
     prevSlide() {
-      this.currentSlide = (this.currentSlide - 1 + this.predictii.length) % this.predictii.length;
+      this.currentSlide =
+        (this.currentSlide - 1 + this.predictii.length) % this.predictii.length;
     },
     handleTouchStart(e) {
       this.touchStartX = e.changedTouches[0].screenX;
@@ -212,12 +249,11 @@ export default {
         if (this.predictii.length) {
           this.nextSlide();
         }
-      }, 5000); // la 5 secunde
-    }
-  }
+      }, 10000); // la 10 secunde
+    },
+  },
 };
 </script>
-
 
 <style scoped>
 .header {
@@ -246,6 +282,21 @@ export default {
   display: flex;
   align-items: right;
   gap: 0.2rem;
+}
+
+.premium-button {
+  background-color: #f5b301;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  margin-left: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.premium-button:hover {
+  background-color: #f5a301;
 }
 
 .user-profile {
@@ -288,6 +339,27 @@ export default {
 
 .profile-menu a:hover {
   text-decoration: underline;
+}
+
+.chat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-left: 1rem;
+  cursor: pointer;
+}
+
+.chat-icon:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s;
+}
+
+.user-profile-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 8px;
 }
 
 .menu-button {
@@ -405,7 +477,8 @@ p {
   z-index: 2;
 }
 
-.detalii-button, .adauga_anunt {
+.detalii-button,
+.adauga_anunt {
   display: inline-block;
   background-color: #1b5e20;
   color: white;
@@ -418,12 +491,14 @@ p {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-.detalii-button, .adauga_anunt:hover {
+.detalii-button,
+.adauga_anunt:hover {
   background-color: #093b12;
   transform: translateY(-2px);
 }
 
-.detalii-button, .adauga_anunt:active {
+.detalii-button,
+.adauga_anunt:active {
   transform: translateY(0);
 }
 
@@ -464,5 +539,4 @@ p {
 .slide-controls button:hover {
   background: #093b12;
 }
-
 </style>

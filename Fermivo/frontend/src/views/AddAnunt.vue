@@ -29,6 +29,12 @@
             <input type="number" id="pret" v-model="pret_lei_tona" required />
           </div>
 
+          <label for="moneda">Monedă</label>
+          <select v-model="moneda" required>
+            <option value="lei">Lei</option>
+            <option value="euro">Euro</option>
+          </select>
+
           <div class="input-group">
             <label for="zona">Zona(Oraș):</label>
             <input type="text" id="zona" v-model="zona" required />
@@ -94,6 +100,7 @@ export default {
     return {
       produs: "",
       pret_lei_tona: "",
+      moneda: "lei",
       zona: "",
       descriere: "",
       produse: [
@@ -158,6 +165,7 @@ export default {
           {
             produs: this.produs,
             pret_lei_tona: parseFloat(this.pret_lei_tona),
+            moneda: this.moneda,
             zona: this.zona,
             descriere: this.descriere,
             userId: user._id,

@@ -4,17 +4,16 @@ import re
 from datetime import datetime, timedelta
 import os
 
-# 🔹 Căi fișiere
 data_path = os.path.join(os.path.dirname(__file__), 'brm_cereale_all_weeks.csv')
 predictii_output = os.path.join(os.path.dirname(__file__), 'brm_predictii_saptamana_viitoare.csv')
 
-# 🔹 Încarcă datele BRM
+
 df = pd.read_csv(data_path)
 
-# 🔹 Curățare coloane
+# Curățare coloane
 df['pret_lei'] = pd.to_numeric(df['pret_lei'], errors='coerce')
 
-# 🔹 Extragem data de început din coloana 'saptamana'
+# Extrag data de început din coloana 'saptamana'
 def extract_start_date(s):
     match = re.search(r'(\d{1,2})\s*-\s*\d{1,2}\s+(\w+)\s+(\d{4})', s)
     if match:
@@ -29,14 +28,14 @@ def extract_start_date(s):
 df['date'] = df['saptamana'].apply(extract_start_date)
 df = df.dropna(subset=['pret_lei', 'date'])
 
-# 🔹 Calculăm data pentru următoarea luni reală
+# Calculez data pentru următoarea luni reală
 today = datetime.today()
 days_until_next_monday = (7 - today.weekday()) % 7
 if days_until_next_monday == 0:
     days_until_next_monday = 7
 future_date = today + timedelta(days=days_until_next_monday)
 
-# 🔹 Pregătim predictiile
+# Pregătim predictiile
 results = []
 
 for produs in df['produs'].unique():
@@ -65,7 +64,7 @@ for produs in df['produs'].unique():
         except Exception as e:
             print(f"❌ Eroare la model {produs} - {zona}: {e}")
 
-# 🔹 Salvăm predictiile
+# Salvez predictiile
 results_df = pd.DataFrame(results)
 results_df.to_csv(predictii_output, index=False)
 

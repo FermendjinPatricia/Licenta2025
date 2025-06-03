@@ -517,3 +517,17 @@ app.get('/api/validate-cui/:cui', async (req, res) => {
       res.status(500).json({ success: false, message: 'Eroare la validare CUI' });
     }
   });
+
+
+const conversatiiRoutes = require("./routes/Conversatii.js");
+app.use("/api/conversatii", conversatiiRoutes);
+const User = require("./models/User");
+
+const reportRoutes = require("./routes/Reports");
+app.use("/api/reports", reportRoutes);
+
+const blockedRoutes = require("./routes/BlockedUsers");
+app.use("/api/blocked", blockedRoutes);
+
+const paymentsPremiumRoutes = require('./routes/PaymentsPremium');
+app.use('/payments-premium', paymentsPremiumRoutes);
