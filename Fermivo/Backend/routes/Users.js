@@ -196,4 +196,65 @@ router.delete("/delete-all", async (req, res) => {
   }
 });
 
+router.post("/:id/rate", verifyToken, async (req, res) => {
+  try {
+    const userRatedId = req.params.id;
+    const raterId = req.user._id;
+    const { rating } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Rating invalid" });
+    }
+
+    const user = await User.findById(userRatedId);
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    // verificăm dacă userul deja a votat
+    const existingReviewIndex = user.reviews.findIndex(
+      (r) => r.userId.toString() === raterId.toString()
+    );
+    if (existingReviewIndex !== -1) {
+      user.reviews[existingReviewIndex].rating = rating;
+    } else {
+      user.reviews.push({ userId: raterId, rating });
+    }
+
+    user.markModified("reviews"); // 🔧 asigură că se salvează corect
+
+    const avg =
+      user.reviews.reduce((sum, r) => sum + r.rating, 0) / user.reviews.length;
+
+    user.rating = avg;
+    user.numReviews = user.reviews.length;
+
+    console.log("➡️ Before Save:");
+    console.log("reviews:", user.reviews);
+    console.log("rating:", user.rating);
+    console.log("numReviews:", user.numReviews);
+
+    await user.save();
+
+    console.log("✅ After Save");
+    console.log("reviews:", user.reviews);
+    console.log("rating:", user.rating);
+    console.log("numReviews:", user.numReviews);
+
+    res.json({
+      success: true,  
+      average: avg.toFixed(1),
+      numReviews: user.numReviews,
+      userRating: rating,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ success: false, message: "Eroare server", error: err });
+  }
+});
+
 module.exports = router;

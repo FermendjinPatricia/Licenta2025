@@ -2,11 +2,15 @@
   <div class="chat-page">
     <div class="chat-header">
       <h2>
-        <span v-if="otherUser">
+        <span
+          v-if="otherUser"
+          @click="goToUserProfile"
+          style="cursor: pointer; text-decoration: underline; color: #1b5e20"
+        >
           {{ otherUser.nume }} {{ otherUser.prenume }}
         </span>
       </h2>
-      <button @click="$router.go(-1)" class="btn-back">Înapoi</button>
+      <button @click="goToChat" class="btn-back">Înapoi</button>
       <div class="menu-wrapper">
         <button class="menu-button" @click="toggleMenu">⋮</button>
         <div class="menu-options" v-if="showMenu">
@@ -115,6 +119,15 @@ export default {
     await this.fetchMessages();
   },
   methods: {
+    goToChat() {
+      this.$router.push("/chat");
+    },
+    goToUserProfile() {
+      this.$router.push({
+        path: `/profil-utilizator/${this.otherUser._id}`,
+        query: { from: this.$route.fullPath },
+      });
+    },
     toggleMenu() {
       this.showMenu = !this.showMenu;
     },

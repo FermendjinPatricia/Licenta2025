@@ -7,6 +7,7 @@
     </p>
     <p>Zona: {{ anunt.zona }}</p>
     <p>Descriere: {{ anunt.descriere }}</p>
+
     <p v-if="isBuyer && anunt.userId">
       <strong>Vânzător:</strong>
       <router-link
@@ -17,7 +18,32 @@
       </router-link>
     </p>
 
-    <p v-if="isBuyer && anunt.userId"><strong>Telefon:</strong> {{ anunt.userId.telefon }}</p>
+    <p v-if="isBuyer && anunt.userId">
+      <strong>Telefon:</strong> {{ anunt.userId.telefon }}
+    </p>
+
+    <div v-if="isBuyer && anunt.userId">
+      <p>
+        <strong>Rating:</strong>
+        {{ average || "N/A" }} ⭐ ({{ numReviews }} review-uri)
+      </p>
+
+      <p><strong>Lasă un rating:</strong></p>
+      <div>
+        <span
+          v-for="star in 5"
+          :key="star"
+          @click="rateUser(star)"
+          :style="{
+            cursor: 'pointer',
+            fontSize: '28px',
+            color: star <= selectedRating ? '#fbc02d' : '#bbb',
+          }"
+        >
+          {{ star <= selectedRating ? "★" : "☆" }}
+        </span>
+      </div>
+    </div>
 
     <button v-if="isBuyer" class="btn-chat" @click="startConversation">
       Conversează
@@ -30,11 +56,7 @@
     <button v-if="!isBuyer" class="btn-back" @click="$router.push('/home')">
       Înapoi
     </button>
-    <button
-      v-if="isBuyer"
-      class="btn-back"
-      @click="$router.push('/home-buyer')"
-    >
+    <button v-if="isBuyer" class="btn-back" @click="$router.push('/home-buyer')">
       Înapoi
     </button>
   </div>
@@ -48,19 +70,65 @@ export default {
     return {
       anunt: {},
       user: JSON.parse(localStorage.getItem("user")),
+      selectedRating: 0,
+      hasRated: false,
+      average: null,
+      numReviews: 0,
     };
   },
   computed: {
     isBuyer() {
       return this.user?.role === "buyer";
     },
+    currentRating() {
+      if (!this.anunt.userId?.reviews) return 0;
+      const review = this.anunt.userId.reviews.find(
+        (r) => r.userId === this.user._id
+      );
+      return review ? review.rating : 0;
+    },
   },
   async created() {
-    const { id } = this.$route.params;
-    const response = await axios.get(`/anunturi/${id}`);
-    this.anunt = response.data.anunt;
+    await this.fetchAnunt();
   },
   methods: {
+    async fetchAnunt() {
+      const { id } = this.$route.params;
+      const response = await axios.get(`/anunturi/${id}`);
+      this.anunt = response.data.anunt;
+      this.selectedRating = this.currentRating;
+      this.average = this.averageRatingCalc();
+      this.numReviews = this.anunt.userId?.reviews?.length || 0;
+    },
+    averageRatingCalc() {
+      if (!this.anunt.userId?.reviews?.length) return null;
+      const sum = this.anunt.userId.reviews.reduce((acc, r) => acc + r.rating, 0);
+      return (sum / this.anunt.userId.reviews.length).toFixed(1);
+    },
+    async rateUser(rating) {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.post(
+          `/users/${this.anunt.userId._id}/rate`,
+          { rating },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        this.selectedRating = rating;
+        this.hasRated = true;
+        this.average = response.data.average;
+        this.numReviews = response.data.numReviews;
+
+        alert("Mulțumim pentru feedback!");
+      } catch (err) {
+        console.error("Eroare rating:", err);
+        alert("Eroare la trimiterea ratingului.");
+      }
+    },
     goToEdit() {
       this.$router.push(`/editare-anunt/${this.anunt._id}`);
     },

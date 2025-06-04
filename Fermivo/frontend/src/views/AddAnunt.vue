@@ -36,8 +36,13 @@
           </select>
 
           <div class="input-group">
-            <label for="zona">Zona(Oraș):</label>
-            <input type="text" id="zona" v-model="zona" required />
+            <label for="zona">Zona (Oraș):</label>
+            <select id="zona" v-model="zona" required>
+              <option disabled value="">Selectează un oraș...</option>
+              <option v-for="oras in orase" :key="oras" :value="oras">
+                {{ oras }}
+              </option>
+            </select>
           </div>
 
           <div class="input-group">
@@ -52,7 +57,16 @@
             ></textarea>
           </div>
 
-          <button type="submit" class="adauga-button">Publică Anunțul</button>
+          <div class="butoane-actiune">
+            <button type="submit" class="adauga-button">Publică Anunțul</button>
+            <button
+              type="button"
+              class="renunta-button"
+              @click="$router.go(-1)"
+            >
+              Renunță
+            </button>
+          </div>
         </form>
       </div>
 
@@ -93,6 +107,7 @@
 
 <script>
 import axios from "../axios";
+import { oraseRomania } from "../data/oraseRomania";
 
 export default {
   name: "AdaugaAnunt",
@@ -114,6 +129,7 @@ export default {
       ],
       filteredPrices: [],
       scraperData: [],
+      orase: oraseRomania,
     };
   },
   methods: {
@@ -178,7 +194,7 @@ export default {
         );
 
         if (response.data.success) {
-          alert("Anunț adăugat cu succes!");
+          //alert("Anunț adăugat cu succes!");
           this.$router.push("/home");
         }
       } catch (error) {
@@ -192,6 +208,47 @@ export default {
 </script>
 
 <style scoped>
+.adauga-button {
+  background: linear-gradient(135deg, #1b5e20, #2e7d32);
+  font-weight: bold;
+}
+.renunta-button {
+  width: 100%;
+  padding: 0.8rem;
+  background: linear-gradient(135deg, #9e9e9e, #bdbdbd);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.renunta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #757575, #9e9e9e);
+}
+
+.renunta-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.butoane-actiune {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.adauga-button,
+.renunta-button {
+  flex: 1;
+}
+
 .adauga-anunt-page {
   position: relative;
   width: 100%;

@@ -1,24 +1,40 @@
 <template>
   <div class="header">
-
-  <router-link :to="isBuyer ? '/home-buyer' : '/home'" class="site-title">
-    {{ isPremium ? 'Fermivo Premium🌾' : 'Fermivo🌾' }}
-  </router-link>
-
-  
-</div>
+    <router-link :to="isBuyer ? '/home-buyer' : '/home'" class="site-title">
+      {{ isPremium ? "Fermivo Premium🌾" : "Fermivo🌾" }}
+    </router-link>
+  </div>
 
   <div class="profil-user">
     <h1>{{ user.nume }} {{ user.prenume }}</h1>
     <p><strong>Firmă:</strong> {{ user.denumireaFirmei }}</p>
     <p><strong>Telefon:</strong> {{ user.telefon }}</p>
     <p><strong>Adresă:</strong> {{ user.adresa }}</p>
+    <p><strong>Rating:</strong> {{ user.rating?.toFixed(1) || "N/A" }} ⭐</p>
+
+    <div v-if="canRate">
+      <p><strong>Lasă un rating:</strong></p>
+      <div>
+        <span
+          v-for="star in 5"
+          :key="star"
+          @click="rateUser(star)"
+          :style="{
+            cursor: 'pointer',
+            fontSize: '28px',
+            color: star <= selectedRating ? '#fbc02d' : '#bbb',
+          }"
+        >
+          {{ star <= selectedRating ? "★" : "☆" }}
+        </span>
+      </div>
+    </div>
 
     <button class="btn-chat" @click="startConversation">
       Conversează cu acest utilizator
     </button>
   </div>
-  <button class="btn-back" @click="$router.go(-1)">← Înapoi</button>
+  <button class="btn-back" @click="goBack">← Înapoi</button>
 </template>
 
 <script>
@@ -33,6 +49,7 @@ export default {
       isLoggedIn: false,
       menuOpen: false,
       showProfileMenu: false,
+      selectedRating: 0,
     };
   },
   async created() {
@@ -42,19 +59,57 @@ export default {
     await this.fetchUserById(id);
   },
   computed: {
+    canRate() {
+      return this.currentUser?._id !== this.user._id;
+    },
+
     isBuyer() {
-    return this.currentUser?.role === "buyer";
-  },
-  userName() {
-    return this.currentUser ? `${this.currentUser.nume} ${this.currentUser.prenume}` : "Utilizator";
-  },
-  userProfilePicture() {
-    return this.currentUser?.profilePicture
-      ? `http://localhost:5000${this.currentUser.profilePicture}`
-      : `http://localhost:5000/uploads/default_profile.jpg`;
-  },
+      return this.currentUser?.role === "buyer";
+    },
+    userName() {
+      return this.currentUser
+        ? `${this.currentUser.nume} ${this.currentUser.prenume}`
+        : "Utilizator";
+    },
+    userProfilePicture() {
+      return this.currentUser?.profilePicture
+        ? `http://localhost:5000${this.currentUser.profilePicture}`
+        : `http://localhost:5000/uploads/default_profile.jpg`;
+    },
   },
   methods: {
+    goBack() {
+      const previous = this.$route.query.from;
+      if (previous) {
+        this.$router.push(previous);
+      } else {
+        this.$router.go(-1); // fallback
+      }
+    },
+    async rateUser(rating) {
+      try {
+        const token = localStorage.getItem("token");
+
+        const response = await axios.post(
+          `/users/${this.user._id}/rate`,
+          { rating },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        alert("Mulțumim pentru feedback!");
+
+        this.user.rating = parseFloat(response.data.average);
+        this.user.numReviews = response.data.numReviews;
+        this.selectedRating = rating;
+      } catch (err) {
+        console.error("Eroare rating:", err);
+        alert("Eroare la trimiterea ratingului.");
+      }
+    },
     async fetchUserById(id) {
       try {
         const response = await axios.get(
@@ -62,6 +117,10 @@ export default {
         );
         if (response.data.success) {
           this.user = response.data.user;
+          const review = this.user.reviews?.find(
+            (r) => r.userId === this.currentUser?._id
+          );
+          this.selectedRating = review?.rating || 0;
         }
       } catch (err) {
         console.error("Eroare la fetch user profil:", err);
