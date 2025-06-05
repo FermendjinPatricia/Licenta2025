@@ -94,6 +94,11 @@
           {{ categorie }}
         </button>
       </div>
+      <div class="harta-button-wrapper">
+        <router-link to="/harta-anunturi" class="btn-vezi-harta">
+          🗺️ Vezi anunțurile pe hartă
+        </router-link>
+      </div>
 
       <div
         v-for="(item, index) in anunturiFiltrate"
@@ -123,7 +128,8 @@
             Preț: {{ item.pret_lei_tona }}
             {{ item.moneda === "euro" ? "€" : "lei" }}/tonă
           </p>
-          <p>Oraș: {{ item.zona }}</p>
+          <p>Județ: {{ item.judet }}</p>
+          <p>Localitate: {{ item.localitate }}</p>
           <router-link :to="`/anunturi/${item._id}`" class="detalii-button">
             Vezi detalii
           </router-link>

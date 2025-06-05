@@ -5,7 +5,8 @@
       Preț: {{ anunt.pret_lei_tona }}
       {{ anunt.moneda === "euro" ? "€" : "lei" }}/tonă
     </p>
-    <p>Zona: {{ anunt.zona }}</p>
+    <p>Județ: {{ anunt.judet }}</p>
+    <p>Localitate: {{ anunt.localitate }}</p>
     <p>Descriere: {{ anunt.descriere }}</p>
 
     <p v-if="isBuyer && anunt.userId">

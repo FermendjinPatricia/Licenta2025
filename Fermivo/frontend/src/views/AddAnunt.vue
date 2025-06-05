@@ -3,19 +3,12 @@
     <img src="../assets/login.jpg" alt="Background" class="background-image" />
 
     <div class="anunt-wrapper">
-      <!-- Formularul tău -->
       <div class="anunt-form-box">
         <h2>Adaugă un Anunț Nou 🚜</h2>
         <form @submit.prevent="submitAnunt">
-          <!-- Select produs -->
           <div class="input-group">
             <label for="produs">Produs:</label>
-            <select
-              id="produs"
-              v-model="produs"
-              @change="fetchScraperData"
-              required
-            >
+            <select id="produs" v-model="produs" @change="fetchScraperData" required>
               <option disabled value="">Selectează un produs...</option>
               <option v-for="prod in produse" :key="prod" :value="prod">
                 {{ prod }}
@@ -23,7 +16,6 @@
             </select>
           </div>
 
-          <!-- restul campurilor -->
           <div class="input-group">
             <label for="pret">Preț (lei/tonă):</label>
             <input type="number" id="pret" v-model="pret_lei_tona" required />
@@ -35,48 +27,46 @@
             <option value="euro">Euro</option>
           </select>
 
-          <div class="input-group">
-            <label for="zona">Zona (Oraș):</label>
-            <select id="zona" v-model="zona" required>
-              <option disabled value="">Selectează un oraș...</option>
-              <option v-for="oras in orase" :key="oras" :value="oras">
-                {{ oras }}
+          <div class="form-group">
+            <label for="judet">Județ:</label>
+            <select v-model="judetSelectat" @change="updateLocalitati" required>
+              <option disabled value="">Selectează județul</option>
+              <option v-for="(localitati, judet) in localitatiRomania" :key="judet" :value="judet">
+                {{ judet }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="localitate">Localitate:</label>
+            <select v-model="localitate" required>
+              <option disabled value="">Selectează localitatea</option>
+              <option v-for="localitate in localitatiDisponibile" :key="localitate" :value="localitate">
+                {{ localitate }}
               </option>
             </select>
           </div>
 
           <div class="input-group">
             <label for="descriere">Descriere:</label>
-            <textarea
-              id="descriere"
-              v-model="descriere"
-              rows="4"
-              maxlength="500"
-              placeholder="Scrie câteva detalii despre produs..."
-              required
-            ></textarea>
+            <textarea id="descriere" v-model="descriere" rows="4" maxlength="500" placeholder="Scrie câteva detalii despre produs..." required></textarea>
           </div>
 
           <div class="butoane-actiune">
             <button type="submit" class="adauga-button">Publică Anunțul</button>
-            <button
-              type="button"
-              class="renunta-button"
-              @click="$router.go(-1)"
-            >
+            <button type="button" class="renunta-button" @click="$router.go(-1)">
               Renunță
             </button>
           </div>
         </form>
       </div>
 
-      <!-- Tabelul de prețuri -->
       <div v-if="filteredPrices.length" class="preturi-preview">
         <h3>Prețuri curente pentru {{ produs }}</h3>
         <table>
           <thead>
             <tr>
-              <th>Zona</th>
+              <th>Zonă</th>
               <th>Preț (lei/tonă)</th>
               <th>Variație %</th>
             </tr>
@@ -85,17 +75,8 @@
             <tr v-for="(item, index) in filteredPrices" :key="index">
               <td>{{ item.zona }}</td>
               <td>{{ item.pret_lei_tona }}</td>
-              <td
-                :class="{
-                  positive: item.variatie_procente > 0,
-                  negative: item.variatie_procente < 0,
-                }"
-              >
-                {{
-                  item.variatie_procente !== null
-                    ? item.variatie_procente + "%"
-                    : "N/A"
-                }}
+              <td :class="{ positive: item.variatie_procente > 0, negative: item.variatie_procente < 0 }">
+                {{ item.variatie_procente !== null ? item.variatie_procente + "%" : "N/A" }}
               </td>
             </tr>
           </tbody>
@@ -107,7 +88,7 @@
 
 <script>
 import axios from "../axios";
-import { oraseRomania } from "../data/oraseRomania";
+import { localitatiRomania } from "../data/localitatiRomania";
 
 export default {
   name: "AdaugaAnunt",
@@ -116,7 +97,8 @@ export default {
       produs: "",
       pret_lei_tona: "",
       moneda: "lei",
-      zona: "",
+      judetSelectat: "",
+      localitate: "",
       descriere: "",
       produse: [
         "Grau Panificatie",
@@ -127,15 +109,19 @@ export default {
         "Orz",
         "Orz Furajer",
       ],
+      localitatiDisponibile: [],
+      localitatiRomania,
       filteredPrices: [],
       scraperData: [],
-      orase: oraseRomania,
     };
   },
   methods: {
+    updateLocalitati() {
+      this.localitatiDisponibile = this.localitatiRomania[this.judetSelectat] || [];
+      this.localitate = "";
+    },
     async fetchScraperData() {
       if (!this.produs) return;
-
       try {
         const response = await axios.get("http://localhost:5000/scrape/brm");
         if (response.data.success) {
@@ -156,34 +142,27 @@ export default {
         Orz: "orz",
         "Orz Furajer": "orz_furajer",
       };
-
       const key = mapping[this.produs];
       this.filteredPrices = this.scraperData[key] || [];
     },
     async submitAnunt() {
       const userString = localStorage.getItem("user");
-      console.log("📦 LocalStorage USER:", userString);
-
       const user = userString ? JSON.parse(userString) : null;
-      console.log("👤 Parsed user:", user);
-
-      //const user = JSON.parse(localStorage.getItem("user"));
       if (!user || !user._id) {
         alert("Eroare: utilizatorul nu este autentificat.");
         return;
       }
-
       try {
         const token = localStorage.getItem("token");
-
         const response = await axios.post(
           "/anunturi",
           {
             produs: this.produs,
             pret_lei_tona: parseFloat(this.pret_lei_tona),
             moneda: this.moneda,
-            zona: this.zona,
+            judet: this.judetSelectat, // ✅ trimitem judetul
             descriere: this.descriere,
+            localitate: this.localitate,
             userId: user._id,
           },
           {
@@ -192,22 +171,42 @@ export default {
             },
           }
         );
-
         if (response.data.success) {
-          //alert("Anunț adăugat cu succes!");
           this.$router.push("/home");
         }
       } catch (error) {
-        alert(
-          error.response?.data?.message || "Eroare la adăugarea anunțului."
-        );
+        alert(error.response?.data?.message || "Eroare la adăugarea anunțului.");
       }
     },
   },
 };
 </script>
 
+
 <style scoped>
+select {
+  width: 100%;
+  padding: 0.7rem;
+  border: 2px solid #2e7d32;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1b5e20;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+select:focus {
+  border-color: #66bb6a;
+  box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.3);
+  outline: none;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #1b5e20;
+  padding: 0.5rem;
+}
+
 .adauga-button {
   background: linear-gradient(135deg, #1b5e20, #2e7d32);
   font-weight: bold;

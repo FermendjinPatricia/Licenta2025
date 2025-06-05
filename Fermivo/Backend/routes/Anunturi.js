@@ -1,23 +1,49 @@
 const express = require("express");
 const router = express.Router();
+require("dotenv").config();
 const Anunt = require("../models/Anunt");
 const verifyToken = require("../middlewares/verifyToken");
+
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+
+async function getCoordsFromLocalitate(localitate) {
+  const token = process.env.MAPBOX_ACCESS_TOKEN;
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(localitate)}.json?access_token=${token}&limit=1&country=RO`;
+
+  const response = await fetch(url);
+  const data = await response.json();
+
+  if (!data.features || data.features.length === 0) {
+    return { lat: null, lng: null };
+  }
+
+  return {
+    lng: data.features[0].center[0],
+    lat: data.features[0].center[1]
+  };
+}
+
 
 // ✅ POST /api/anunturi - Adaugă anunț
 router.post("/", verifyToken, async (req, res) => {
   try {
-    const { produs, pret_lei_tona,moneda, zona, descriere } = req.body;
+    const { produs, pret_lei_tona,moneda, judet, descriere, localitate } = req.body;
 
-    if (!produs || !pret_lei_tona || !zona || !descriere) {
+    if (!produs || !pret_lei_tona || !judet || !descriere || !localitate) {
       return res.status(400).json({ message: "Toate câmpurile sunt obligatorii." });
     }
+
+    const coords = await getCoordsFromLocalitate(localitate);
 
     const anuntNou = new Anunt({
       produs,
       pret_lei_tona,
       moneda: moneda || "lei", // default la lei
-      zona,
+      judet,
       descriere,
+      localitate,
+      lat: coords.lat,
+      lng: coords.lng,
       userId: req.user._id,
     });
 
@@ -67,11 +93,11 @@ router.get("/:id", async (req, res) => {
 // ✅ PUT /api/anunturi/:id - Update anunt
 router.put("/:id", verifyToken, async (req, res) => {
   try {
-    const { produs, pret_lei_tona, moneda, zona, descriere } = req.body;
+    const { produs, pret_lei_tona, moneda, judet, descriere, localitate} = req.body;
 
     const updatedAnunt = await Anunt.findByIdAndUpdate(
       req.params.id,
-      { produs, pret_lei_tona, moneda, zona, descriere },
+      { produs, pret_lei_tona, moneda, judet, descriere, localitate },
       { new: true }
     );
 
@@ -82,6 +108,16 @@ router.put("/:id", verifyToken, async (req, res) => {
     res.json({ success: true, anunt: updatedAnunt });
   } catch (error) {
     res.status(500).json({ success: false, message: "Eroare la actualizare." });
+  }
+});
+
+// Șterge toate anunțurile
+router.delete("/delete-all", async (req, res) => {
+  try {
+    await Anunt.deleteMany({});
+    res.status(200).json({ message: "Toate anunțurile au fost șterse cu succes." });
+  } catch (error) {
+    res.status(500).json({ message: "Eroare la ștergerea anunțurilor.", error });
   }
 });
 
@@ -108,4 +144,6 @@ router.delete("/:id", verifyToken, async (req, res) => {
 });
 
 
+
 module.exports = router;
+

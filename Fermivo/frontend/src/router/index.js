@@ -16,6 +16,7 @@ import Chat from "@/views/Chat.vue";
 import AdminPage from "@/views/AdminPage.vue";
 import PremiumInfo from "@/views/PremiumInfo.vue";
 import ProfilUtilizator from "@/views/ProfilUtilizator.vue";
+import HartaAnunturi from "@/views/HartaAnunturi.vue";
 
 const routes = [
   {
@@ -100,6 +101,12 @@ const routes = [
     name: "HomeBuyer",
     component: HomeBuyer,
     meta: { requiresAuth: true, allowedRoles: ["buyer"] }, // doar buyer-ul are voie aici
+  },
+  {
+    path: "/harta-anunturi",
+    name: "HartaAnunturi",
+    component: HartaAnunturi,
+    meta: { requiresAuth: true, allowedRoles: ["seller", "buyer", "admin"] }, // toți au voie aici
   },
   // Admin routes
   {

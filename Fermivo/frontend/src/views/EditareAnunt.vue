@@ -18,12 +18,7 @@
 
           <div class="input-group">
             <label for="pret">Preț (lei/tonă):</label>
-            <input
-              type="number"
-              id="pret"
-              v-model="anunt.pret_lei_tona"
-              required
-            />
+            <input type="number" id="pret" v-model="anunt.pret_lei_tona" required />
           </div>
 
           <div class="input-group">
@@ -35,48 +30,43 @@
           </div>
 
           <div class="input-group">
-            <label for="zona">Zona (Oraș):</label>
-            <select id="zona" v-model="anunt.zona" required>
-              <option disabled value="">Selectează un oraș...</option>
-              <option v-for="oras in orase" :key="oras" :value="oras">
-                {{ oras }}
+            <label for="judet">Județ:</label>
+            <select id="judet" v-model="anunt.judet" @change="updateLocalitati" required>
+              <option disabled value="">Selectează județul...</option>
+              <option v-for="(localitati, judet) in localitatiRomania" :key="judet" :value="judet">
+                {{ judet }}
+              </option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="localitate">Localitate:</label>
+            <select id="localitate" v-model="anunt.localitate" required>
+              <option disabled value="">Selectează localitatea...</option>
+              <option v-for="localitate in localitatiDisponibile" :key="localitate" :value="localitate">
+                {{ localitate }}
               </option>
             </select>
           </div>
 
           <div class="input-group">
             <label for="descriere">Descriere:</label>
-            <textarea
-              id="descriere"
-              v-model="anunt.descriere"
-              rows="4"
-              maxlength="500"
-              required
-            ></textarea>
+            <textarea id="descriere" v-model="anunt.descriere" rows="4" maxlength="500" required></textarea>
           </div>
 
           <div class="butoane-actiune">
-            <button type="submit" class="adauga-button">
-              Salvează Modificările
-            </button>
-            <button
-              type="button"
-              class="renunta-button"
-              @click="$router.go(-1)"
-            >
-              Renunță
-            </button>
+            <button type="submit" class="adauga-button">Salvează Modificările</button>
+            <button type="button" class="renunta-button" @click="$router.go(-1)">Renunță</button>
           </div>
         </form>
       </div>
 
-      <!-- Tabelul de prețuri -->
       <div v-if="filteredPrices.length" class="preturi-preview">
         <h3>Prețuri curente pentru {{ anunt.produs }}</h3>
         <table>
           <thead>
             <tr>
-              <th>Zona</th>
+              <th>Zonă</th>
               <th>Preț (lei/tonă)</th>
               <th>Variație %</th>
             </tr>
@@ -85,17 +75,8 @@
             <tr v-for="(item, index) in filteredPrices" :key="index">
               <td>{{ item.zona }}</td>
               <td>{{ item.pret_lei_tona }}</td>
-              <td
-                :class="{
-                  positive: item.variatie_procente > 0,
-                  negative: item.variatie_procente < 0,
-                }"
-              >
-                {{
-                  item.variatie_procente !== null
-                    ? item.variatie_procente + "%"
-                    : "N/A"
-                }}
+              <td :class="{ positive: item.variatie_procente > 0, negative: item.variatie_procente < 0 }">
+                {{ item.variatie_procente !== null ? item.variatie_procente + "%" : "N/A" }}
               </td>
             </tr>
           </tbody>
@@ -107,7 +88,7 @@
 
 <script>
 import axios from "../axios";
-import { oraseRomania } from "../data/oraseRomania";
+import { localitatiRomania } from "../data/localitatiRomania";
 
 export default {
   name: "EditareAnunt",
@@ -117,7 +98,8 @@ export default {
         produs: "",
         pret_lei_tona: "",
         moneda: "lei",
-        zona: "",
+        judet: "",
+        localitate: "",
         descriere: "",
       },
       produse: [
@@ -131,7 +113,8 @@ export default {
       ],
       scraperData: [],
       filteredPrices: [],
-      orase: oraseRomania,
+      localitatiDisponibile: [],
+      localitatiRomania,
     };
   },
   watch: {
@@ -146,6 +129,7 @@ export default {
       if (response.data.success) {
         this.anunt = response.data.anunt;
         this.anunt.moneda = this.anunt.moneda || "lei";
+        this.updateLocalitati();
         this.fetchScraperData();
       }
     } catch (error) {
@@ -153,9 +137,11 @@ export default {
     }
   },
   methods: {
+    updateLocalitati() {
+      this.localitatiDisponibile = this.localitatiRomania[this.anunt.judet] || [];
+    },
     async fetchScraperData() {
       if (!this.anunt.produs) return;
-
       try {
         const response = await axios.get("http://localhost:5000/scrape/brm");
         if (response.data.success) {
@@ -176,14 +162,12 @@ export default {
         Orz: "orz",
         "Orz Furajer": "orz_furajer",
       };
-
       const key = mapping[this.anunt.produs];
       this.filteredPrices = this.scraperData[key] || [];
     },
     async updateAnunt() {
       const token = localStorage.getItem("token");
       const id = this.$route.params.id;
-
       try {
         const response = await axios.put(
           `/anunturi/${id}`,
@@ -191,16 +175,15 @@ export default {
             produs: this.anunt.produs,
             pret_lei_tona: parseFloat(this.anunt.pret_lei_tona),
             moneda: this.anunt.moneda,
-            zona: this.anunt.zona,
+            judet: this.anunt.judet,
+            localitate: this.anunt.localitate,
             descriere: this.anunt.descriere,
           },
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-
         if (response.data.success) {
-          //alert("Anunț actualizat cu succes!");
           this.$router.push("/home");
         }
       } catch (error) {

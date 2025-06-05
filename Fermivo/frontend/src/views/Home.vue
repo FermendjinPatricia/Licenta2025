@@ -113,7 +113,8 @@
             Preț: {{ item.pret_lei_tona }}
             {{ item.moneda === "euro" ? "€" : "lei" }}/tonă
           </p>
-          <p>Oraș: {{ item.zona }}</p>
+          <p>Județ: {{ item.judet }}</p>
+          <p>Localitate: {{ item.localitate }}</p>
 
           <router-link :to="`/anunturi/${item._id}`" class="detalii-button">
             Vezi detalii
