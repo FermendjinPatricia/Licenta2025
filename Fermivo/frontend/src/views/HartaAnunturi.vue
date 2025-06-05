@@ -1,16 +1,17 @@
 <template>
   <div class="welcome-page">
-    <img src="../assets/login.jpg" alt="Background" class="background-image" />
     <div class="header">
       <button class="menu-button" @click="toggleMenu">&#9776;</button>
 
-      <router-link v-if="isPremium" to="/home-buyer" class="site-title">
-        Fermivo Premium🌾
-      </router-link>
-      <router-link v-else to="/home-buyer" class="site-title">
-        Fermivo🌾
-      </router-link>
-
+      <router-link
+        v-if="isPremium"
+        to="/home-buyer"
+        class="site-title"
+        >Fermivo Premium🌾</router-link
+      >
+      <router-link v-else to="/home-buyer" class="site-title"
+        >Fermivo🌾</router-link
+      >
       <router-link
         v-if="isLoggedIn && !isPremium"
         to="/premium"
@@ -25,18 +26,14 @@
             <img :src="userProfilePicture" class="profile-picture" />
             <span class="user-name">{{ userName }}</span>
           </div>
-
           <img
             src="../assets/chat-icon.png"
             class="chat-icon"
             alt="Chat"
             @click="$router.push('/chat')"
           />
-
           <div v-if="showProfileMenu" class="profile-menu">
-            <router-link :to="`/editare-profil/${user._id}`">
-              Editează Profil
-            </router-link>
+            <router-link :to="`/editare-profil/${user._id}`">Editează Profil</router-link>
           </div>
         </div>
       </div>
@@ -46,96 +43,104 @@
       </button>
     </div>
 
+    <!-- BACKGROUND -->
+    <img src="../assets/login.jpg" alt="Background" class="background-image" />
+
     <!-- HARTA -->
-    <MapComponent :anunturi="anunturi" />
+    <div class="map-wrapper">
+      <MapComponent />
+    </div>
   </div>
 </template>
 
 <script>
-import axios from "../axios";
-import MapComponent from "../components/MapComponent.vue";
+import MapComponent from "@/components/MapComponent.vue";
 
 export default {
   name: "HartaAnunturi",
   components: { MapComponent },
   data() {
     return {
-      isLoggedIn: false,
       user: null,
+      isLoggedIn: false,
       isPremium: false,
       showProfileMenu: false,
-      menuOpen: false,
-      anunturi: [],
     };
   },
   computed: {
     userName() {
-      return this.user
-        ? `${this.user.nume} ${this.user.prenume}`
-        : "Utilizator";
+      return this.user ? `${this.user.nume} ${this.user.prenume}` : "Utilizator";
     },
     userProfilePicture() {
       return this.user?.profilePicture
-        ? `http://localhost:5000${this.user.profilePicture}`
+        ? `http://localhost:5000/${this.user.profilePicture}`
         : `http://localhost:5000/uploads/default_profile.jpg`;
     },
   },
   async created() {
     const localUser = JSON.parse(localStorage.getItem("user"));
-    if (localUser) {
-      await this.fetchUser(localUser._id);
+    if (localUser && localUser._id) {
       this.isLoggedIn = true;
-      this.isPremium = localUser.isPremium;
+      this.fetchUser(localUser._id);
     }
-    this.fetchAnunturi();
   },
   methods: {
-    async fetchUser(userId) {
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/api/users/${userId}`
-        );
-        if (response.data.success) {
-          this.user = response.data.user;
-          this.isPremium = this.user.isPremium;
-        }
-      } catch (error) {
-        console.error("❌ Eroare la fetch user:", error);
+    async fetchUser(id) {
+      const res = await fetch(`http://localhost:5000/api/users/${id}`);
+      const data = await res.json();
+      if (data.success) {
+        this.user = data.user;
+        this.isPremium = data.user.isPremium;
       }
     },
-    async fetchAnunturi() {
-      try {
-        const response = await axios.get("/anunturi");
-        if (response.data.success) {
-          this.anunturi = response.data.anunturi;
-        }
-      } catch (err) {
-        console.error("Eroare la fetch anunturi:", err);
-      }
+    toggleProfileMenu() {
+      this.showProfileMenu = !this.showProfileMenu;
+    },
+    toggleMenu() {
+      // dacă ai meniu lateral
     },
     handleLogout() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       this.$router.push("/login");
     },
-    toggleMenu() {
-      this.menuOpen = !this.menuOpen;
-    },
-    toggleProfileMenu() {
-      this.showProfileMenu = !this.showProfileMenu;
-    },
   },
 };
 </script>
+
 <style scoped>
-.background-image {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: -1;
+.map-wrapper {
+  margin: 2rem auto;
+  width: 95%;
+  max-width: 1000px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  border: 2px solid #1b5e20;
+}
+.filtru-categorii {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem auto;
+  justify-content: center;
+}
+
+.filtru-categorii button {
+  background-color: #f0f0f0;
+  color: #1b5e20;
+  border: 1px solid #1b5e20;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.filtru-categorii button.activ,
+.filtru-categorii button:hover {
+  background-color: #1b5e20;
+  color: white;
 }
 
 html,
