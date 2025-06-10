@@ -47,12 +47,24 @@
     <img src="../assets/login.jpg" alt="Background" class="background-image" />
 
     <!-- HARTA -->
+    <!-- FILTRU -->
+    <div class="filtru-categorii">
+      <button
+        v-for="cat in categories"
+        :key="cat"
+        :class="{ activ: selectedCategory === cat }"
+        @click="handleCategoryClick(cat)"
+      >
+        {{ cat }}
+      </button>
+    </div>
+
+    <!-- HARTA -->
     <div class="map-wrapper">
-      <MapComponent />
+      <MapComponent ref="map" :anunturi="anunturiFiltrate" :key="selectedCategory" />
     </div>
   </div>
 </template>
-
 <script>
 import MapComponent from "@/components/MapComponent.vue";
 
@@ -65,26 +77,70 @@ export default {
       isLoggedIn: false,
       isPremium: false,
       showProfileMenu: false,
+
+      anunturi: [],
+      selectedCategory: "toate",
+      categories: [
+        "toate",
+        "Grâu panificație",
+        "Grâu furajer",
+        "Orz",
+        "Orz furajer",
+        "Porumb",
+        "Floarea soarelui",
+        "Rapiță",
+      ],
     };
   },
   computed: {
     userName() {
-      return this.user ? `${this.user.nume} ${this.user.prenume}` : "Utilizator";
+      return this.user
+        ? `${this.user.nume} ${this.user.prenume}`
+        : "Utilizator";
     },
     userProfilePicture() {
       return this.user?.profilePicture
         ? `http://localhost:5000/${this.user.profilePicture}`
         : `http://localhost:5000/uploads/default_profile.jpg`;
     },
+    anunturiFiltrate() {
+      if (this.selectedCategory === "toate") return this.anunturi;
+
+      const selected = this.normalize(this.selectedCategory);
+      return this.anunturi.filter(
+        (a) => this.normalize(a.produs) === selected
+      );
+    },
   },
   async created() {
     const localUser = JSON.parse(localStorage.getItem("user"));
     if (localUser && localUser._id) {
       this.isLoggedIn = true;
-      this.fetchUser(localUser._id);
+      await this.fetchUser(localUser._id);
     }
+    await this.fetchAnunturi();
   },
   methods: {
+    normalize(text) {
+      return text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "")
+        .trim();
+    },
+    handleCategoryClick(cat) {
+      this.selectedCategory = cat;
+    },
+    async fetchAnunturi() {
+      try {
+        const res = await fetch("http://localhost:5000/api/anunturi");
+        const data = await res.json();
+        this.anunturi = data.anunturi || [];
+      } catch (err) {
+        console.error("❌ Eroare la fetch anunturi:", err);
+      }
+    },
     async fetchUser(id) {
       const res = await fetch(`http://localhost:5000/api/users/${id}`);
       const data = await res.json();
@@ -96,9 +152,7 @@ export default {
     toggleProfileMenu() {
       this.showProfileMenu = !this.showProfileMenu;
     },
-    toggleMenu() {
-      // dacă ai meniu lateral
-    },
+    toggleMenu() {},
     handleLogout() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
