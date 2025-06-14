@@ -58,22 +58,30 @@ export default {
     setMarkers(anunturi) {
       if (!this.map) return;
       this.clearMarkers();
+
       anunturi.forEach((anunt) => {
         if (anunt.lat && anunt.lng) {
           const marker = new google.maps.Marker({
             position: { lat: anunt.lat, lng: anunt.lng },
             map: this.map,
-            title: anunt.produs,
+            title: anunt.produs || "Camion",
           });
 
-          const info = new google.maps.InfoWindow({
-            content: `
-              <strong>${anunt.produs}</strong><br/>
-              ${anunt.judet} - ${anunt.localitate}<br/>
-              ${anunt.pret_lei_tona} ${anunt.moneda}/tonă
-            `,
-          });
+          // Verificăm dacă este un anunț sau un camion
+          let content = "";
+          if (anunt.pret_lei_tona && anunt.moneda) {
+            content = `
+          <strong>${anunt.produs}</strong><br/>
+          ${anunt.judet || ""} - ${anunt.localitate || ""}<br/>
+          ${anunt.pret_lei_tona} ${anunt.moneda}/tonă
+        `;
+          } else {
+            content = `<strong>Camion: ${
+              anunt.produs || "Șofer necunoscut"
+            }</strong>`;
+          }
 
+          const info = new google.maps.InfoWindow({ content });
           marker.addListener("click", () => info.open(this.map, marker));
           this.markers.push(marker);
         }

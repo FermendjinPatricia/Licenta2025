@@ -17,6 +17,8 @@ import AdminPage from "@/views/AdminPage.vue";
 import PremiumInfo from "@/views/PremiumInfo.vue";
 import ProfilUtilizator from "@/views/ProfilUtilizator.vue";
 import HartaAnunturi from "@/views/HartaAnunturi.vue";
+import TrackSofer from "@/views/TrackSofer.vue";
+import CamioaneBuyer from "@/views/CamioaneBuyer.vue";
 
 const routes = [
   {
@@ -103,6 +105,12 @@ const routes = [
     meta: { requiresAuth: true, allowedRoles: ["buyer"] }, // doar buyer-ul are voie aici
   },
   {
+    path: "/camioane-cumparator",
+    name: "CamioaneCumparator",
+    component: CamioaneBuyer,
+    meta: { requiresAuth: true, allowedRoles: ["buyer"] }, // doar buyer-ul are voie aici
+  },
+  {
     path: "/harta-anunturi",
     name: "HartaAnunturi",
     component: HartaAnunturi,
@@ -119,6 +127,12 @@ const routes = [
     path: "/about",
     name: "About",
     component: About,
+  },
+  {
+    // Sofer tracking routes
+    path: "/track/:token",
+    name: "TrackSofer",
+    component: TrackSofer,
   },
 ];
 

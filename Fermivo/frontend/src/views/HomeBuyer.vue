@@ -16,6 +16,13 @@
       >
         Devino Premium
       </router-link>
+      <router-link
+        v-if="isPremium && isLoggedIn"
+        to="/camioane-cumparator"
+        class="premium-button"
+      >
+        Urmărește Șofer 🚚
+      </router-link>
 
       <div class="header-right">
         <div class="header-right" v-if="user">

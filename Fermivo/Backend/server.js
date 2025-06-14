@@ -531,3 +531,6 @@ app.use("/api/blocked", blockedRoutes);
 
 const paymentsPremiumRoutes = require('./routes/PaymentsPremium');
 app.use('/api/payments-premium', paymentsPremiumRoutes);
+
+const trackerRoutes = require("./routes/Trackers");
+app.use("/api/trackers", trackerRoutes);
