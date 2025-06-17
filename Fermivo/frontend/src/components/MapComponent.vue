@@ -3,7 +3,6 @@
 </template>
 
 <script>
-import { GOOGLE_MAPS_API_KEY } from "./key";
 export default {
   name: "MapComponent",
   props: {
