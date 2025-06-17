@@ -3,6 +3,7 @@
 </template>
 
 <script>
+import { GOOGLE_MAPS_API_KEY } from "./key";
 export default {
   name: "MapComponent",
   props: {
@@ -37,8 +38,10 @@ export default {
       return new Promise((resolve) => {
         if (window.google) return resolve();
         const script = document.createElement("script");
+        const apiKey = GOOGLE_MAPS_API_KEY;
+        console.log("🔑 Cheia din .env este:", apiKey); // DEBUG!
         script.src =
-          "https://maps.googleapis.com/maps/api/js?key=AIzaSyDuJX2WVbs4TZgtMOizvr4OHsGm6vXoNq8&callback=initMapCallback";
+          `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMapCallback`;
         script.async = true;
         script.defer = true;
         window.initMapCallback = resolve;
